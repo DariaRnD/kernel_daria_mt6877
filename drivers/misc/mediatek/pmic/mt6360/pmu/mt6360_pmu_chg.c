@@ -2880,7 +2880,6 @@ static int mt6360_pmu_chg_get_property(struct power_supply *psy,
 
 	val->intval = 0;
 
-	dev_dbg(mpci->dev, "%s: prop = %d\n", __func__, psp);
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
 		ret = mt6360_pmu_chg_get_online(mpci, val);
@@ -3101,7 +3100,7 @@ static int mt6360_boost_get_current_limit(struct regulator_dev *rdev)
 	if (ret < 0)
 		return ret;
 	ret = (ret & desc->csel_mask) >> shift;
-	if (ret > ARRAY_SIZE(mt6360_otg_oc_threshold))
+	if (ret >= ARRAY_SIZE(mt6360_otg_oc_threshold))
 		return -EINVAL;
 	return mt6360_otg_oc_threshold[ret];
 }

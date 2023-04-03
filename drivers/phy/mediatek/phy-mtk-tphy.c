@@ -1310,7 +1310,10 @@ static void u2_phy_instance_power_on(struct mtk_tphy *tphy,
 #if (!defined CONFIG_MACH_MT6781) && (!defined CONFIG_MACH_MT6768)
 	tmp = readl(com + U3P_USBPHYACR6);
 	tmp &= ~PA6_RG_U2_PHY_REV6;
-	tmp |= PA6_RG_U2_PHY_REV6_VAL(1);
+	if (instance->eye_rev6)
+		tmp |= PA6_RG_U2_PHY_REV6_VAL(instance->eye_rev6);
+	else
+		tmp |= PA6_RG_U2_PHY_REV6_VAL(1);
 	writel(tmp, com + U3P_USBPHYACR6);
 
 	udelay(800);
@@ -1336,7 +1339,10 @@ static void u2_phy_instance_power_on(struct mtk_tphy *tphy,
 	/* HQA Setting */
 	tmp = readl(com + U3P_USBPHYACR6);
 	tmp &= ~PA6_RG_U2_DISCTH;
-	tmp |= PA6_RG_U2_DISCTH_VAL(0xf);
+	if (instance->eye_disc)
+		tmp |= PA6_RG_U2_DISCTH_VAL(instance->eye_disc);
+	else
+		tmp |= PA6_RG_U2_DISCTH_VAL(0xf);
 	writel(tmp, com + U3P_USBPHYACR6);
 #endif
 

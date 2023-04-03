@@ -22,7 +22,11 @@
 #include <mt-plat/mtk_boot.h>
 #include <mtk_musb.h>
 
+#ifdef CONFIG_MACH_MT6771
+#include <mt-plat/v1/charger_class.h>
+#else
 #include <charger_class.h>
+#endif
 #include <mtk_charger.h>
 
 #include "inc/mt6370_pmu_fled.h"
@@ -84,6 +88,17 @@ enum mt6370_usbsw_state {
 	MT6370_USBSW_CHG = 0,
 	MT6370_USBSW_USB,
 };
+
+#ifdef CONFIG_MACH_MT6771
+/* charger_dev notify */
+enum {
+	CHARGER_DEV_NOTIFY_VBUS_OVP,
+	CHARGER_DEV_NOTIFY_BAT_OVP,
+	CHARGER_DEV_NOTIFY_EOC,
+	CHARGER_DEV_NOTIFY_RECHG,
+	CHARGER_DEV_NOTIFY_SAFETY_TIMEOUT,
+};
+#endif
 
 struct mt6370_pmu_charger_desc {
 	u32 ichg;
@@ -2876,6 +2891,22 @@ static int mt6370_get_zcv(struct charger_device *chg_dev, u32 *uV)
 	return 0;
 }
 
+#ifdef CONFIG_MACH_MT6771
+static int mt6370_do_event(struct charger_device *chg_dev, u32 event, u32 args)
+{
+	switch (event) {
+	case 0:
+		charger_dev_notify(chg_dev, CHARGER_DEV_NOTIFY_EOC);
+		break;
+	case 1:
+		charger_dev_notify(chg_dev, CHARGER_DEV_NOTIFY_RECHG);
+		break;
+	default:
+		break;
+	}
+	return 0;
+}
+#else
 static int mt6370_do_event(struct charger_device *chg_dev, u32 event, u32 args)
 {
 	struct mt6370_pmu_charger_data *chg_data =
@@ -2897,6 +2928,7 @@ static int mt6370_do_event(struct charger_device *chg_dev, u32 event, u32 args)
 	}
 	return 0;
 }
+#endif
 
 #ifdef MT6370_APPLE_SAMSUNG_TA_SUPPORT
 static int mt6370_detect_apple_samsung_ta(

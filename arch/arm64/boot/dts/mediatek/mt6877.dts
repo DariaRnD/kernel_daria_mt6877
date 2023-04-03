@@ -1283,7 +1283,7 @@
 
 	lk_charger: lk_charger {
 		compatible = "mediatek,lk_charger";
-		enable_anime;
+		/*enable_anime;*/
 		/* enable_pe_plus; */
 		enable_pd20_reset;
 		power_path_support;
@@ -1300,7 +1300,7 @@
 		pd_charger_current = <500000>;
 
 		/* battery temperature protection */
-		temp_t4_threshold = <50>;
+		temp_t4_threshold = <55>;
 		temp_t3_threshold = <45>;
 		temp_t1_threshold = <0>;
 	};
@@ -1308,18 +1308,19 @@
 	charger: charger {
 		compatible = "mediatek,charger";
 		algorithm_name = "SwitchCharging2";
-		/* enable_sw_jeita; */
+		enable_sw_jeita;
 		/* enable_pe_plus; */
 		/* enable_pe_2; */
 		/* enable_pe_3; */
 		/* enable_pe_4; */
+		enable_pe_5;
 		enable_type_c;
 		power_path_support;
 		enable_dynamic_mivr;
 		bootmode = <&chosen>;
 
 		/* common */
-		battery_cv = <4350000>;
+		battery_cv = <4450000>;
 		max_charger_voltage = <6500000>;
 		min_charger_voltage = <4600000>;
 
@@ -1342,20 +1343,22 @@
 		ta_ac_charger_current = <3000000>;
 
 		/* sw jeita */
-		jeita_temp_above_t4_cv = <4240000>;
-		jeita_temp_t3_to_t4_cv = <4240000>;
-		jeita_temp_t2_to_t3_cv = <4340000>;
-		jeita_temp_t1_to_t2_cv = <4240000>;
-		jeita_temp_t0_to_t1_cv = <4040000>;
-		jeita_temp_below_t0_cv = <4040000>;
-		temp_t4_thres = <50>;
-		temp_t4_thres_minus_x_degree = <47>;
+		/*prize modified by lvyuanchuan for Optimization of low-voltage switching processes,20221130*/
+		jeita_temp_above_t4_cv = <4100000>;
+		jeita_temp_t3_to_t4_cv = <4100000>;
+		jeita_temp_t2_to_t3_cv = <4450000>;
+		jeita_temp_t1_to_t2_cv = <4450000>;
+		jeita_temp_t0_to_t1_cv = <4100000>;
+		jeita_temp_below_t0_cv = <4100000>;
+		temp_t4_thres = <55>;
+		temp_t4_thres_minus_x_degree = <50>;
 		temp_t3_thres = <45>;
-		temp_t3_thres_minus_x_degree = <39>;
+		temp_t3_thres_minus_x_degree = <40>;
 		temp_t2_thres = <10>;
-		temp_t2_thres_plus_x_degree = <16>;
+		temp_t2_thres_plus_x_degree = <15>;
 		temp_t1_thres = <0>;
-		temp_t1_thres_plus_x_degree = <6>;
+		/*PRIZE: Modified by lvyuanchuan,X9-693,20221130*/
+		temp_t1_thres_plus_x_degree = <2>;
 		temp_t0_thres = <0>;
 		temp_t0_thres_plus_x_degree = <0>;
 		temp_neg_10_thres = <0>;
@@ -1364,8 +1367,8 @@
 		enable_min_charge_temp;
 		min_charge_temp = <0>;
 		min_charge_temp_plus_x_degree = <6>;
-		max_charge_temp = <50>;
-		max_charge_temp_minus_x_degree = <47>;
+		max_charge_temp = <55>;
+		max_charge_temp_minus_x_degree = <50>;
 
 		/* PE */
 		ta_12v_support;
@@ -1657,10 +1660,34 @@
 		compatible = "mediatek,mbist_ao";
 		reg = <0 0x10013000 0 0x1000>;
 	};
+	
+/* prize add by xuejian nfc 20221025-start */
+	nfc:nfc {
+		compatible = "mediatek,nfc-gpio-v2";
+		gpio-rst = <10>;
+		gpio-rst-std = <&pio 10 0x0>;
+		gpio-irq = <11>;
+		gpio-irq-std = <&pio 11 0x0>;
+	};
 
 	irq_nfc: irq_nfc {
 		compatible = "mediatek,irq_nfc-eint";
+		interrupt-parent = <&pio>;
+		interrupts = <11 IRQ_TYPE_LEVEL_HIGH 11 0>;
+		debounce = <0>;
+		status = "okay";
 	};
+/* prize add by xuejian nfc 20221025-end */
+/*prize add by xuejian for gesture start*/
+    common_node: common_node{
+        compatible = "coosea,common_node";
+    };	
+/*prize add by xuejian for gesture end*/
+/*prize add by zhangchao for oled start*/
+    oled_node: oled_node{
+        compatible = "coosea,oled";
+    };
+/*prize add by zhangchao for oled end*/
 
 	gpio_usage_mapping:gpio_usage_mapping {
 		compatible = "mediatek,gpio_usage_mapping";
@@ -2951,19 +2978,19 @@
 				<30>; /* in_size */
 
 		/* feature, frequecy, coreid */
-		scp_feature_tbl = < 0   5 1>,	/* vow */
+		scp_feature_tbl = < 0   5 0>,	/* vow */
 				  < 1  29 0>,	/* sensor */
 				  < 2  26 0>,	/* flp */
 				  < 3   0 0>,	/* rtos */
-				  < 4 200 1>,	/* speaker */
+				  < 4 200 0>,	/* speaker */
 				  < 5   0 0>,	/* vcore */
-				  < 6 120 1>,	/* barge in */
-				  < 7  10 1>,	/* vow dump */
-				  < 8  80 1>,	/* vow vendor M */
-				  < 9  43 1>,	/* vow vendor A */
-				  <10  22 1>,	/* vow vendor G */
-				  <11  20 1>,	/* vow dual mic */
-				  <12 135 1>,	/* vow dual mic barge in */
+				  < 6 120 0>,	/* barge in */
+				  < 7  10 0>,	/* vow dump */
+				  < 8  80 0>,	/* vow vendor M */
+				  < 9  43 0>,	/* vow vendor A */
+				  <10  22 0>,	/* vow vendor G */
+				  <11  20 0>,	/* vow dual mic */
+				  <12 135 0>,	/* vow dual mic barge in */
 				  <13 200 0>;	/* ultrasound */
 
 		secure_dump = "disable";	/* disabled in default */
@@ -2971,10 +2998,11 @@
 
 		scp_mem_key = "mediatek,reserve-memory-scp_share";
 		scp_mem_tbl = <0 0x0>, /* secure dump, its size is in secure_dump_size */
-				  <1 0x4E300>, /* vow */
+			      <1 0x4e300>, /* vow */
 			      <2 0x100000>, /* sensor */
 			      <3 0x180000>, /* logger */
-			      <4 0x19000>; /* audio */
+			      <4 0x19000>, /* audio */
+			      <7 0x19000>; /* ultrasound*/
 
 		memorydump =
 		<0x100000>, /* l2tcm */
@@ -3201,7 +3229,7 @@
 		mediatek,check_dfd_support = <1>;
 		mediatek,dfd_infra_base = <0x34>;
 		mediatek,dfd_ap_addr_offset = <24>;
-		mediatek,dfd_latch_offset = <0x48>;
+		mediatek,dfd_latch_offset = <0x44>;
 	};
 
 	dfd_cache: dfd_cache {
@@ -3549,7 +3577,7 @@
 			<0>, /*MTK_DRM_OPT_VP_PQ*/
 			<0>, /*MTK_DRM_OPT_GAME_PQ*/
 			<0>, /*MTK_DRM_OPT_MMPATH*/
-			<0>, /*MTK_DRM_OPT_HBM*/
+			<1>, /*MTK_DRM_OPT_HBM*/
 			<0>, /*MTK_DRM_OPT_VDS_PATH_SWITCH*/
 			<0>, /*MTK_DRM_OPT_LAYER_REC*/
 			<0>, /*MTK_DRM_OPT_CLEAR_LAYER*/
@@ -5185,6 +5213,7 @@
 	flashlights_mt6360: flashlights_mt6360 {
 		compatible = "mediatek,flashlights_mt6360";
 		decouple = <1>;
+		led_num = <2>;/* 0:led1 1:led2 2:both */
 		channel@1 {
 			type = <0>;
 			ct = <0>;
@@ -6149,11 +6178,19 @@
 		boost_period = <0>;
 	};
 
+	/* prize modified for disable mrdump start */
 	mrdump_ext_rst: mrdump_ext_rst {
 		compatible = "mediatek, mrdump_ext_rst-eint";
 		mode = "IRQ";
-		status = "okay";
+		status = "disabled";
 	};
+	/* prize modified for disable mrdump end */
+
+	/* prize added for swtp start */
+	swtp: swtp {
+		compatible = "mediatek, swtp-eint";
+	};
+	/* prize added for swtp end */
 
 	gyro:gyro {
 	};
@@ -6613,20 +6650,48 @@
 	};
 };
 
-&i2c6 {
-	speaker_amp: speaker_amp@5c {
+/* prize modified by hanjiuping awinic aw88394 smartPA support start */
+
+&i2c3 {
+	speaker_amp: speaker_amp@34 {
 		compatible = "mediatek,speaker_amp";
 		#sound-dai-cells = <0>;
-		reg = <0x5c>;
-		status = "okay";
-	};
-	gate_ic: gate_ic@11 {
-		compatible = "mediatek,gate-ic-i2c";
-		gate-power-gpios = <&pio 107 0>;
-		reg = <0x11>;
+		reg = <0x34>;
+		reset-gpio = <&pio 12 0>;
+		irq-gpio = <&pio 19 0>;
+		sound-channel = <0>;
+		re-min = <1000>;
+		re-max = <40000>;
+		aw-cali-mode = "aw_attr";
 		status = "okay";
 	};
 };
+/* prize modified by hanjiuping awinic aw88394 smartPA support end */
+
+/* prize added by hanjiuping for hl5280 support start */
+&i2c7 {
+	fsa4480_switch: fsa4480_switch@42 {
+		compatible = "mediatek,hl5280-i2c";
+		reg = <0x42>;
+		/* mic and gnd swap threshold in mV,
+		 * only used when FSA4480_SWITCH_BY_ACCDET_ADC set
+		 */
+		mic_swap_thr = <200>;
+		status = "okay";
+	};
+};
+/* prize added by hanjiuping for hl5280 support end */
+
+/* prize added by hanjiuping for
+ * type C USB/audio analog switch by accdet ADC start */
+&odm {
+	accdet_auxadc: accdet_auxadc {
+		compatible = "prize,accdet_auxadc";
+		io-channels = <&pmic_auxadc AUXADC_ACCDET>;
+		io-channel-names ="pmic_accdet";
+	};
+};
+/* prize added type C USB/audio switch by accdet ADC end */
 
 &pio {
 	aud_clk_mosi_off: aud_clk_mosi_off {
@@ -6827,7 +6892,16 @@
 #ifdef CONFIG_MTK_ENABLE_GENIEZONE
 #include "mediatek/trusty.dtsi"
 #endif
-
+/*prize add by lvyuanchuan for 66w,20221019*/
+#ifdef CONFIG_CHARGER_SC8551
+#include "mediatek/sc8551.dtsi"
+#endif
+#ifdef CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT
+#include "mediatek/mtk_pe50.dtsi"
+#endif
+#ifdef CONFIG_RT_PROP_CHGALGO
+#include "mediatek/pca_pps_ta.dtsi"
+#endif
 &mt_pmic_vemc_ldo_reg {
 	regulator-min-microvolt = <3000000>;
 	regulator-max-microvolt = <3000000>;

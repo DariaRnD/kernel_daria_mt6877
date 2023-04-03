@@ -270,7 +270,13 @@ EXPORT_SYMBOL_GPL(led_set_brightness_nopm);
 void led_set_brightness_nosleep(struct led_classdev *led_cdev,
 				enum led_brightness value)
 {
-	led_cdev->brightness = min(value, led_cdev->max_brightness);
+/*liumiao add for HBM 20221124*/
+	if(value != 260 && value != 270) {
+		led_cdev->brightness = min(value, led_cdev->max_brightness);
+	} else {
+		led_cdev->brightness = value;
+	}
+/*liumiao add for HBM 20221124*/
 
 	if (led_cdev->flags & LED_SUSPENDED)
 		return;
