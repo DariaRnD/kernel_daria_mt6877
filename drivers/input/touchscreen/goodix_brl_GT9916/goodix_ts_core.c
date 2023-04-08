@@ -1932,9 +1932,6 @@ static int goodix_ts_resume(struct goodix_ts_core *core_data)
 		return 0;
 
 	ts_info("Resume start");
-	/*prize add fod function 20230218 start*/
-	//wait_event_interruptible(core_data->figer_wait_queue, atomic_read(&core_data->fod_figer_state) == 0);
-	/*prize add fod function 20230218 end*/
 	atomic_set(&core_data->suspended, 0);
 	hw_ops->irq_enable(core_data, false);
 
@@ -2379,10 +2376,6 @@ static int goodix_ts_probe(struct platform_device *pdev)
 
 	/* Try start a thread to get config-bin info */
 	goodix_start_later_init(core_data);
-	/*prize add fod function 20230218 start*/
-	init_waitqueue_head(&core_data->figer_wait_queue);
-	atomic_set(&core_data->fod_figer_state, 0);
-	/*prize add fod function 20230218 end*/
 //prize added by xuejian tp info, 20221026-start
 #if defined(CONFIG_PRIZE_HARDWARE_INFO)
   //  sprintf(current_tp_info.chip,"FW:0x%x", tp_info_chip_ver.version.config_id);
