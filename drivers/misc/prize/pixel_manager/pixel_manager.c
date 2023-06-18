@@ -142,6 +142,12 @@ void get_pix_rgb(int16_t *R, int16_t *G, int16_t *B)
 }
 EXPORT_SYMBOL_GPL(get_pix_rgb);
 
+void reset_pix_rgb()
+{
+	memset(&g_pix_param, -1 , sizeof(g_pix_param));
+}
+EXPORT_SYMBOL_GPL(reset_pix_rgb);
+
 static const struct file_operations pixel_manager_fops = {
 	.owner          = THIS_MODULE,
 	.open           = pixel_manager_open,

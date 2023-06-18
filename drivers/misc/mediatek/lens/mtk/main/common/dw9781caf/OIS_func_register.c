@@ -623,6 +623,19 @@ void fw_update_item(void)
 	}
 }
 #endif
+void set_OIS_flip_mirror(int flip){
+	unsigned short ret=0;
+	unsigned short ret1=0;
+	if(flip == 0){ // normal
+		write_reg_16bit_value_16bit(0x71DA, 0xFFFF); 
+		write_reg_16bit_value_16bit(0x71DB, 0x0001); 
+	}
+	else { // filp&mirror
+		write_reg_16bit_value_16bit(0x71DA, 0x0001);
+		write_reg_16bit_value_16bit(0x71DB, 0xFFFF); 
+	}	
+	printk("[set_OIS_flip_mirror] 0x71DA:0x%x 0x71DB:0x%x",ret,ret1);
+}
 void calibration_save(void)
 {
 	printk("[dw9781c_calibration_save] calibration save starting\r\n");

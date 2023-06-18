@@ -102,7 +102,13 @@ static bool is_typec_adapter(struct mtk_charger *info)
 
 	rp = adapter_dev_get_property(info->pd_adapter, TYPEC_RP_LEVEL);
 	if (info->pd_type == MTK_PD_CONNECT_TYPEC_ONLY_SNK &&
+	//prize modified by huarui , MT6762V1-71. ignore NoRp/DualRp.SRC cable, start
+	#if defined(CONFIG_PRIZE_CHARGER_IGNORE_TYPEC_NORP)
+			rp != 500 && rp != 0 &&
+	#else
 			rp != 500 &&
+	#endif
+	//prize modified by huarui , MT6762V1-71. ignore NoRp/DualRp.SRC cable, end
 			info->chr_type != POWER_SUPPLY_TYPE_USB &&
 			info->chr_type != POWER_SUPPLY_TYPE_USB_CDP)
 		return true;

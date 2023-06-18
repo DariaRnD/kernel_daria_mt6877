@@ -860,20 +860,22 @@ static void mtk_dsc_config(struct mtk_ddp_comp *comp,
 				(dsc_params->rc_range_parameters[14].range_min_qp & 0x1f);
 			mtk_ddp_write_relaxed(comp, reg_val, DISP_REG_DSC_PPS19, handle);
 		} else {
-			mtk_ddp_write(comp, 0x20000c03, DISP_REG_DSC_PPS6, handle);
-			mtk_ddp_write(comp, 0x330b0b06, DISP_REG_DSC_PPS7, handle);
+		/*prize update 10bit pps dsc start - 20230423*/
+			mtk_ddp_write(comp, 0x20001007, DISP_REG_DSC_PPS6, handle);
+			mtk_ddp_write(comp, 0x330f0f06, DISP_REG_DSC_PPS7, handle);
 			mtk_ddp_write(comp, 0x382a1c0e, DISP_REG_DSC_PPS8, handle);
 			mtk_ddp_write(comp, 0x69625446, DISP_REG_DSC_PPS9, handle);
 			mtk_ddp_write(comp, 0x7b797770, DISP_REG_DSC_PPS10, handle);
 			mtk_ddp_write(comp, 0x00007e7d, DISP_REG_DSC_PPS11, handle);
-			mtk_ddp_write(comp, 0x00800880, DISP_REG_DSC_PPS12, handle);
-			mtk_ddp_write(comp, 0xf8c100a1, DISP_REG_DSC_PPS13, handle);
-			mtk_ddp_write(comp, 0xe8e3f0e3, DISP_REG_DSC_PPS14, handle);
-			mtk_ddp_write(comp, 0xe103e0e3, DISP_REG_DSC_PPS15, handle);
-			mtk_ddp_write(comp, 0xd943e123, DISP_REG_DSC_PPS16, handle);
-			mtk_ddp_write(comp, 0xd185d965, DISP_REG_DSC_PPS17, handle);
-			mtk_ddp_write(comp, 0xd1a7d1a5, DISP_REG_DSC_PPS18, handle);
-			mtk_ddp_write(comp, 0x0000d1ed, DISP_REG_DSC_PPS19, handle);
+			mtk_ddp_write(comp, 0x010408e0, DISP_REG_DSC_PPS12, handle);
+			mtk_ddp_write(comp, 0xf9460125, DISP_REG_DSC_PPS13, handle);
+			mtk_ddp_write(comp, 0xe967f167, DISP_REG_DSC_PPS14, handle);
+			mtk_ddp_write(comp, 0xe187e167, DISP_REG_DSC_PPS15, handle);
+			mtk_ddp_write(comp, 0xd9a7e1a7, DISP_REG_DSC_PPS16, handle);
+			mtk_ddp_write(comp, 0xd9e9d9c9, DISP_REG_DSC_PPS17, handle);
+			mtk_ddp_write(comp, 0xd26bd209, DISP_REG_DSC_PPS18, handle);
+			mtk_ddp_write(comp, 0x0000d271, DISP_REG_DSC_PPS19, handle);
+			/*prize update 10bit pps dsc end - 20230423*/
 		}
 #if 0
 		if (comp->mtk_crtc->is_dual_pipe) {

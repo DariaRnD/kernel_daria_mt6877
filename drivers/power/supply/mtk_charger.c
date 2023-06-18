@@ -1956,12 +1956,28 @@ int psy_charger_set_property(struct power_supply *psy,
 			info->enable_hv_charging = false;
 		break;
 	case POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX:
+	//prize huangjiwu 20230525 for close thermal charger start
+	#if defined(CONFIG_PRIZE_NOT_LIMIT_THERMAL_CHARGER)
+		info->chg_data[idx].thermal_input_current_limit = -1;
+	#else
+	//prize huangjiwu 20230525 for close thermal charger end
 		info->chg_data[idx].thermal_charging_current_limit =
 			val->intval;
+	//prize huangjiwu 20230525 for close thermal charger start
+	#endif
+	//prize huangjiwu 20230525 for close thermal charger end
 		break;
 	case POWER_SUPPLY_PROP_INPUT_CURRENT_LIMIT:
+	//prize huangjiwu 20230525 for close thermal charger start
+	#if defined(CONFIG_PRIZE_NOT_LIMIT_THERMAL_CHARGER)
+		info->chg_data[idx].thermal_input_current_limit = -1;
+	#else
+	//prize huangjiwu 20230525 for close thermal charger end
 		info->chg_data[idx].thermal_input_current_limit =
 			val->intval;
+	//prize huangjiwu 20230525 for close thermal charger start
+	#endif
+	//prize huangjiwu 20230525 for close thermal charger end
 		break;
 	default:
 		return -EINVAL;

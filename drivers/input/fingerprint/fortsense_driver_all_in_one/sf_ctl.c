@@ -159,19 +159,19 @@ static int sf_probe(sf_device_t *pdev);
 
 #if SF_SPI_RW_EN
 static struct of_device_id  sf_of_match[] = {
-    { .compatible = COMPATIBLE_SW_FP, },
+   // { .compatible = COMPATIBLE_SW_FP, },
 	{ .compatible = "prize,fingerprint", }, //clw add
     {},
 };
 
-static struct spi_board_info spi_board_devs[] __initdata = {
-    [0] = {
-        .modalias = "fortsense-fp",
-        .bus_num = 1,
-        .chip_select = 0,
-        .mode = SPI_MODE_0,
-    },
-};
+// static struct spi_board_info spi_board_devs[] __initdata = {
+    // [0] = {
+        // .modalias = "fortsense-fp",
+        // .bus_num = 1,
+        // .chip_select = 0,
+        // .mode = SPI_MODE_0,
+    // },
+// };
 
 static int sf_ctl_spi_speed(unsigned int speed)
 {
@@ -1523,7 +1523,7 @@ static int __init sf_ctl_driver_init(void)
 #endif
 #if SF_SPI_RW_EN
     /**register SPI device、driver***/
-    spi_register_board_info(spi_board_devs, ARRAY_SIZE(spi_board_devs));
+    // spi_register_board_info(spi_board_devs, ARRAY_SIZE(spi_board_devs));
     err = spi_register_driver(&sf_driver);
 
     if (err < 0) {

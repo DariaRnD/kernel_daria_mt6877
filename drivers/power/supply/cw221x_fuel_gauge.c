@@ -226,7 +226,7 @@ static int cw_get_voltage(struct cw_battery *cw_bat)
 {
 	int ret;
 	unsigned char reg_val[2] = {0 , 0};
-	unsigned int voltage;
+	unsigned int voltage = 0;
 
 	ret = cw_read_word(cw_bat->client, REG_VCELL_H, reg_val);
 	if (ret < 0)
@@ -293,6 +293,7 @@ static int cw_get_temp(struct cw_battery *cw_bat)
 	int ret;
 	unsigned char reg_val;
 	int temp = 0,tmp_compensate = 0;
+
 	ret = cw_read(cw_bat->client, REG_TEMP, &reg_val);
 	if (ret < 0)
 		return ret;
@@ -308,10 +309,15 @@ static int cw_get_temp(struct cw_battery *cw_bat)
 		/*PRIZE:modified by lvyuanchuan,X9-836,20230115*/
 		tmp_compensate = COMPENSATE_TEMP3;
 	}else{
-		tmp_compensate = 0;
+		/*PRIZE:modified by lvyuanchuan,X9-1112,20230421*/
+		if((cw_bat->temp > 0)&&(temp - cw_bat->temp) >= ABS_TEMP){
+			tmp_compensate = temp - cw_bat->temp - 10;
+		}else{
+			tmp_compensate = 0;
+		}
 	}
 	cw_bat->temp = (temp - tmp_compensate);
-	FG_DBG(" CW_temp = %d,tmp_compensate=%d\n", temp,tmp_compensate);
+	FG_DBG(" CW_temp = %d,Tmp_compensate=%d\n", temp,tmp_compensate);
 	/*PRIZE:modified by lvyuanchuan,x9-652,20230113 end*/
 	return 0;
 }
@@ -642,7 +648,7 @@ static int cw_battery_get_property(struct power_supply *psy,
 		val->intval= POWER_SUPPLY_HEALTH_GOOD;
 		break;
 	case POWER_SUPPLY_PROP_PRESENT:		// 3
-		val->intval = cw_bat->voltage <= 0 ? 0 : 1;
+		val->intval = cw_bat->voltage > 0 ? 1 : 0;
 		break;
 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:		// 12
 		val->intval = cw_bat->voltage * CW_VOL_UNIT;

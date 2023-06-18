@@ -110,6 +110,12 @@ void accdet_eint_func_extern(int state);
 int typec_accdet_mic_detect(void);
 #endif
 //add by liaojie,for typec accdet 20220714
+#if defined(CONFIG_MTK_SAR_HUB)
+//prize-ACCDET sar calibration-liaoxingen-2022830-start 
+void __attribute__ ((weak)) sar_sensor_calibration_to_hub(void){};
+extern void sar_sensor_calibration_to_hub(void);
+//prize-ACCDET sar calibration-liaoxingen-2022830-end
+#endif
 
 /* Used to let accdet know if the pin has been fully plugged-in */
 #define EINT_PLUG_OUT			(0)
@@ -867,6 +873,12 @@ static void send_status_event(u32 cable_type, u32 status)
 		}
 		pr_info("accdet HEADPHONE(3-pole) %s\n",
 			status ? "PlugIn" : "PlugOut");
+#if defined(CONFIG_MTK_SAR_HUB)
+		//prize-ACCDET sar calibration-liaoxingen-2022830-start 
+		if(status)
+			sar_sensor_calibration_to_hub();
+		//prize-ACCDET sar calibration-liaoxingen-2022830-end 
+#endif		
 		break;
 	case HEADSET_MIC:
 		/* when plug 4-pole out, 3-pole plug out should also be
@@ -893,6 +905,12 @@ static void send_status_event(u32 cable_type, u32 status)
 		 * micbias, it will cause key no response
 		 */
 		del_timer_sync(&micbias_timer);
+#if defined(CONFIG_MTK_SAR_HUB)
+		//prize-ACCDET sar calibration-liaoxingen-2022830-start 
+		if(status)
+			sar_sensor_calibration_to_hub();
+		//prize-ACCDET sar calibration-liaoxingen-2022830-end 
+#endif
 		break;
 	case LINE_OUT_DEVICE:
 		if (status)

@@ -583,6 +583,9 @@ endmenu # Debug
 #prize add by wangyongsheng 20210104------start
 source "drivers/misc/mediatek/uhf/Kconfig"
 #prize add by wangyongsheng 20210104------end
+#drv add by lipengpeng 20230417 start
+source "drivers/misc/mediatek/scan_key/Kconfig"
+#drv add by lipengpeng 20230417 end
 
 menu "Misc"
 source "drivers/misc/mediatek/ext_gic/Kconfig"

@@ -677,7 +677,7 @@ static void GC2375H_Sensor_Init(struct i2c_client *client)
 	write_cmos_sensor(client,0x2b,0x08); 
 	write_cmos_sensor(client,0xfe,0x00); 
 
-	write_cmos_sensor(client,0x8f, read_cmos_sensor(client,0x8f) | 0x07); // prize add for exact shutter
+	write_cmos_sensor(client,0x8f, read_cmos_sensor(client,0x8f) | 0x17); // prize add for exact shutter
 
 };
 
@@ -2412,9 +2412,9 @@ static kal_uint16 Camera_Read_Shutter(struct i2c_client *client)
 	if(sensor_id == GC6153_SENSOR_ID)
 		shutter = shutter * 4;	// prize add by yanrenjie make shutter approximate, gc6153 max shutter is 500
 	if(sensor_id == GC2375H_SENSOR_ID) {
-		if(shutter > 151)
-			shutter =150;
-		shutter = (151-shutter)*14;
+		if(shutter > 100)
+			shutter =99;
+		shutter = 2000 - shutter*20;
 	}
 	CAMERA_DBG("camera_Read_Shutter %d\r\n",shutter);
 	return shutter;

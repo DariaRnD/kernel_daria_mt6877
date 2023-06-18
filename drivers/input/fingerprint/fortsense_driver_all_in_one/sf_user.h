@@ -18,19 +18,19 @@
 //-----------------------------------------------------------------------------
 
 /* Dts node. */
-#define COMPATIBLE_SW_FP            "fs,fingerprint"
+#define COMPATIBLE_SW_FP            "mediatek,mt6765-fpc"
 
 // for not mediatek
-#define COMPATIBLE_RESET_GPIO       "fs,gpio-reset"
-#define COMPATIBLE_IRQ_GPIO         "fs,gpio-irq"
-#define COMPATIBLE_PWR_GPIO         "fs,gpio-pwr"
+#define COMPATIBLE_RESET_GPIO       "fortsense,gpio_reset"
+#define COMPATIBLE_IRQ_GPIO         "fortsense,gpio_irq"
+#define COMPATIBLE_PWR_GPIO         "fortsense,gpio_pwr"
 
 //for mediatek pinctl system
-#define FINGER_POWER_ON             "finger_power_high"
-#define FINGER_POWER_OFF            "finger_power_low"
-#define FINGER_RESET_LOW            "finger_rst_low"
-#define FINGER_RESET_HIGH           "finger_rst_high"
-#define FINGER_INT_SET              "eint_as_int"
+#define FINGER_POWER_ON             "fpc_pins_pwr_high"
+#define FINGER_POWER_OFF            "fpc_pins_pwr_low"
+#define FINGER_RESET_LOW            "fpc_pins_rst_low"
+#define FINGER_RESET_HIGH           "fpc_pins_rst_high"
+#define FINGER_INT_SET              "fpc_eint_as_int"
 // spi dts config enable
 #define SF_SPI_DTS_CS               0
 #define SF_SPI_DTS_Ck               0
@@ -40,14 +40,14 @@
 #define SF_SPI_DTS_MI_PD            0
 #define SF_SPI_DTS_MO_PU            0
 #define SF_SPI_DTS_MO_PD            0
-#define FINGER_CS_SET               "finger_mode_as_cs"
-#define FINGER_CK_SET               "finger_mode_as_ck"
-#define FINGER_MI_SET               "finger_mode_as_mi"
-#define FINGER_MO_SET               "finger_mode_as_mo"
-#define FINGER_MI_PU                "miso_pull_up"
-#define FINGER_MI_PD                "miso_pull_down"
-#define FINGER_MO_PU                "mosi_pull_up"
-#define FINGER_MO_PD                "mosi_pull_down"
+#define FINGER_CS_SET               "fpc_mode_as_cs"
+#define FINGER_CK_SET               "fpc_mode_as_ck"
+#define FINGER_MI_SET               "fpc_mode_as_mi"
+#define FINGER_MO_SET               "fpc_mode_as_mo"
+#define FINGER_MI_PU                "fpc_miso_pull_up"
+#define FINGER_MI_PD                "fpc_miso_pull_down"
+#define FINGER_MO_PU                "fpc_mosi_pull_up"
+#define FINGER_MO_PD                "fpc_mosi_pull_down"
 
 /* regulator VDD select */
 #define SF_VDD_NAME                 "fs_vdd"

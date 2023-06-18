@@ -3,11 +3,18 @@
  * Copyright (c) 2019 MediaTek Inc.
  */
 
+#include <uapi/linux/sched/types.h>
+#include <linux/sched.h>
+#include <linux/kthread.h>
 #include <linux/delay.h>
 #include "ite6113.h"
 
 static struct i2c_client *it6112_tx_i2c_client;
 static struct i2c_client *it6112_rx_i2c_client;
+
+static struct task_struct *ite_poll_task;
+static wait_queue_head_t _ite_poll_task_wq;
+static atomic_t _ite_poll_task_wakeup = ATOMIC_INIT(1);
 
 const static struct dcs_setting_entry bypass_mode_table[] = {
 	{LP_CMD_ENABLE_BYPASS_MODE, LP_CMD_LPDT, 0x23, 2, {0x5A, 0x28}},
@@ -1278,6 +1285,7 @@ int init_config(struct it6112 *it6112_client)
 
 void device_power_off(struct it6112 *it6112_client)
 {
+	ite_poll_enable(0);
 	it6112_client->enable_mipi_tx_output_clock_continuous = true;
 	mipi_tx_set_bits(it6112_client, 0x44, 0x01,
 		it6112_client->enable_mipi_tx_output_clock_continuous);
@@ -1331,6 +1339,8 @@ void chip_init(struct it6112 *it6112_client)
 
 	mipi_tx_set_output(it6112_client);
 	mipi_tx_enable_auto_read_panel(it6112_client, read_back);
+	ite_poll_int(it6112_client);
+	ite_poll_enable(1);
 }
 
 void it6112_read_ddic_reg(struct it6112 *it6112_client, u8 *buff)
@@ -1389,6 +1399,48 @@ void poll(struct it6112 *it6112_client)
 			mipi_polling_state(it6112_client);
 		}
 	}
+}
+
+static int ite_poll_worker_kthread(void *data)
+{
+	int ret = 0;
+	struct sched_param param = {
+		.sched_priority = 99
+	};
+
+	sched_setscheduler(current, SCHED_RR, &param);
+	while (1) {
+		msleep(1000);
+		ret = wait_event_interruptible(_ite_poll_task_wq,
+			atomic_read(&_ite_poll_task_wakeup));
+		if (ret < 0) {
+			pr_info("[ite] ite polling thread waked up accidently!\n");
+			continue;
+		}
+
+		poll((struct it6112 *)data);
+		pr_debug("[ite] ite polling!\n");
+		if (kthread_should_stop())
+			break;
+	}
+	return 0;
+}
+
+void ite_poll_enable(int enable)
+{
+	pr_debug("[ite] %s enable=%d\n", __func__, enable);
+	if (enable) {
+		atomic_set(&_ite_poll_task_wakeup, 1);
+		wake_up_interruptible(&_ite_poll_task_wq);
+	} else
+		atomic_set(&_ite_poll_task_wakeup, 0);
+}
+
+void ite_poll_int(void *data)
+{
+	ite_poll_task = kthread_create(ite_poll_worker_kthread, data, "ite_polling");
+	init_waitqueue_head(&_ite_poll_task_wq);
+	wake_up_process(ite_poll_task);
 }
 
 /* I2C */

@@ -619,4 +619,7 @@ int init_config(struct it6112 *it6112_client);
 void it6112_set_backlight(struct it6112 *it6112_client, int map_level);
 void it6112_read_ddic_reg(struct it6112 *it6112_client, u8 *buff);
 
+void ite_poll_int(void *data);
+void ite_poll_enable(int enable);
+
 #endif

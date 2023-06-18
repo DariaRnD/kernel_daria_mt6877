@@ -40,7 +40,7 @@
 
 /* prize add by xuejian 20211117 start */
 #if defined(CONFIG_PRIZE_HARDWARE_INFO)
-#include "../../../misc/mediatek/prize/hardware_info/hardware_info.h"
+#include "../../../misc/mediatek/hardware_info/hardware_info.h"
 extern struct hardware_info current_tp_info;
 #endif
 /* prize add by xuejian 20211117 end */

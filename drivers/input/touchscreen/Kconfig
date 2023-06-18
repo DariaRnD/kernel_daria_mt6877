@@ -1382,7 +1382,50 @@ config TOUCHSCREEN_MTK_ILI9882N
           To compile this dirver as a module, choose M here: the
           module will be called.
 #dvr add by huangyu ILI9882N 20230213 end 
-	
+
+#dvr add by wangwei1 ILI9882Q 20230424 start 
+config TOUCHSCREEN_MTK_ILI9882Q
+        bool "ILI9882Q for Mediatek package"
+        default n
+        help
+          Say Y here if you have ILI9882Q touch panel.
+
+          If unsure, say N.
+
+          To compile this dirver as a module, choose M here: the
+          module will be called.
+#dvr add by wangwei1 ILI9882Q 20230424 end
+
+#dvr add by wangwei1 CHSC5432 20230506 start 
+config TOUCHSCREEN_MTK_CHSC5432
+        bool "CHSC5432 for Mediatek package"
+        default n
+        help
+          Say Y here if you have CHSC5432 touch panel.
+
+          If unsure, say N.
+
+          To compile this dirver as a module, choose M here: the
+          module will be called.
+#dvr add by wangwei1 CHSC5432 20230506 end 
+source "drivers/input/touchscreen/chsc5xxx_v3.7.2/Kconfig"
+
+#dvr add by wangwei1 TXD ILI9882Q 20230505 start 
+config TOUCHSCREEN_MTK_ILI9882Q_TXD
+        bool "ILI9882Q for Mediatek package"
+        default n
+        help
+          Say Y here if you have ILI9882Q touch panel.
+
+          If unsure, say N.
+
+          To compile this dirver as a module, choose M here: the
+          module will be called.
+#dvr add by wangwei1 TXD ILI9882Q 20230505 end
+#dvr add by wangwei1 TXD ILI9882Q 20230517 start 
+source "drivers/input/touchscreen/ILITEK_V3.0.9.0/Kconfig"
+#dvr add by wangwei1 TXD ILI9882Q 20230517 end
+
 #prize Added glove mode control macro-tangcong-20210624-start	  
 config PRIZE_SMART_COVER_COMMON_NODE
 	bool "prize smart cover common node"
@@ -1494,3 +1537,55 @@ config TOUCHSCREEN_HIMAX_IC_HX83112_SPI
 source "drivers/input/touchscreen/hxchipset_spi/Kconfig"
 
 #prize-add-hxchipset spi-pzp-20210713-end
+
+#drv add by pengzhipeng 20230316 start
+config TOUCHSCREEN_SYNA_TCM2
+	tristate "Synaptics TCM Touchscreen Driver Generation2"
+	depends on INPUT
+	help
+	  Say Y here if you have a Synaptics Touchscreen.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called synaptics_tcm.
+
+source "drivers/input/touchscreen/synaptics_tcm2/Kconfig"
+
+#dvr add by wangwei1 ST7123 20230425 end 
+config TOUCHSCREEN_MTK_ST7123
+       bool "ST7123 chipset function"
+		help
+		This enables support for ST7123 CHIPSET.
+#dvr add by wangwei1 ST7123 20230425 end
+#dvr add by wangwei1 ST7123 20230518 start
+source "drivers/input/touchscreen/sitronix_ts_v43.00.230509/Kconfig"
+#dvr add by wangwei1 ST7123 20230518 end
+
+#drv add by pengzhipeng 20230316 start
+config TOUCHSCREEN_SYNA_TCM2
+	tristate "Synaptics TCM Touchscreen Driver Generation2"
+	depends on INPUT
+	help
+	  Say Y here if you have a Synaptics Touchscreen.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called synaptics_tcm.
+
+source "drivers/input/touchscreen/synaptics_tcm2/Kconfig"
+#drv add by pengzhipeng 20230316 end
+#dvr add by huangyu NT36672N 202305018 end 
+config TOUCHSCREEN_MTK_NT36672N
+       bool "NT36672N chipset function"
+		help
+		This enables support for NT36672N CHIPSET.
+#dvr add by huangyu NT36672N 202305018 end 
+
+#dvr add by wangwei1 CHSC5432 20230512 end
+config PRIZE_SMART_COVER_COMMON_NODE
+       bool "CHSC5432 chipset glove function"
+		help
+		This enables support glove for CHSC5432 CHIPSET.
+#dvr add by wangwei1 CHSC5432 20230512 end

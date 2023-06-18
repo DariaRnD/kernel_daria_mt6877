@@ -53,34 +53,262 @@ extern void mtk_drm_esd_set_status(int status);
 /*PRIZE:Added by lvyuanchuan,X9-678,20221230 end*/
 /*PRIZE:Added by lvyuanchuan,X9-534,20230103 start*/
 static unsigned int Gamma_to_level[] = {
-0   ,2   ,4   ,6   ,9   ,12  ,15  ,19  ,23  ,27  ,
-31  ,35  ,40  ,45  ,50  ,55  ,60  ,65  ,71  ,77  ,
-83  ,89  ,95  ,101 ,107 ,114 ,121 ,127 ,134 ,141 ,
-148 ,156 ,163 ,171 ,178 ,186 ,194 ,202 ,210 ,218 ,
-226 ,234 ,243 ,251 ,260 ,269 ,278 ,287 ,296 ,305 ,
-314 ,323 ,333 ,342 ,352 ,361 ,371 ,381 ,391 ,401 ,
-411 ,421 ,431 ,441 ,452 ,462 ,473 ,484 ,494 ,505 ,
-516 ,527 ,538 ,549 ,560 ,571 ,583 ,594 ,606 ,617 ,
-629 ,640 ,652 ,664 ,676 ,688 ,700 ,712 ,724 ,737 ,
-749 ,761 ,774 ,786 ,799 ,811 ,824 ,837 ,850 ,863 ,
-876 ,889 ,902 ,915 ,928 ,942 ,955 ,968 ,982 ,995 ,
-1009,1023,1036,1050,1064,1078,1092,1106,1120,1134,
-1148,1163,1177,1191,1206,1220,1235,1250,1264,1279,
-1294,1309,1324,1338,1353,1369,1384,1399,1414,1429,
-1445,1460,1476,1491,1507,1522,1538,1554,1569,1585,
-1601,1617,1633,1649,1665,1681,1698,1714,1730,1747,
-1763,1779,1796,1812,1829,1846,1862,1879,1896,1913,
-1930,1947,1964,1981,1998,2015,2032,2049,2067,2084,
-2102,2119,2136,2154,2172,2189,2207,2225,2242,2260,
-2278,2296,2314,2332,2350,2368,2386,2404,2423,2441,
-2459,2478,2496,2515,2533,2552,2570,2589,2608,2626,
-2645,2664,2683,2702,2721,2740,2759,2778,2797,2816,
-2835,2855,2874,2893,2913,2932,2952,2971,2991,3010,
-3030,3050,3070,3089,3109,3129,3149,3169,3189,3209,
-3229,3249,3269,3290,3310,3330,3350,3371,3391,3412,
-3432,3453,3473,3494,3515,3515,3515,3515,3515,3515,
-3515,3515,3515,3515,3515,3515,3515,3515,3515,3515,
-3515,3515,3515,3515,3515
+0     ,
+1     ,
+1     ,
+1     ,
+2     ,
+2     ,
+2     ,
+3     ,
+4     ,
+5     ,
+6     ,
+7     ,
+9     ,
+10    ,
+12    ,
+13    ,
+15    ,
+17    ,
+19    ,
+21    ,
+23    ,
+26    ,
+28    ,
+31    ,
+33    ,
+36    ,
+39    ,
+42    ,
+45    ,
+48    ,
+51    ,
+55    ,
+58    ,
+62    ,
+66    ,
+70    ,
+74    ,
+78    ,
+82    ,
+86    ,
+90    ,
+95    ,
+99    ,
+104   ,
+109   ,
+114   ,
+119   ,
+124   ,
+129   ,
+135   ,
+140   ,
+146   ,
+151   ,
+157   ,
+163   ,
+169   ,
+175   ,
+181   ,
+188   ,
+194   ,
+201   ,
+207   ,
+214   ,
+221   ,
+228   ,
+235   ,
+242   ,
+249   ,
+257   ,
+264   ,
+272   ,
+280   ,
+288   ,
+296   ,
+304   ,
+312   ,
+320   ,
+328   ,
+337   ,
+345   ,
+354   ,
+363   ,
+372   ,
+381   ,
+390   ,
+399   ,
+409   ,
+418   ,
+428   ,
+437   ,
+447   ,
+457   ,
+467   ,
+477   ,
+487   ,
+498   ,
+508   ,
+519   ,
+529   ,
+540   ,
+551   ,
+562   ,
+573   ,
+584   ,
+595   ,
+607   ,
+618   ,
+630   ,
+642   ,
+654   ,
+666   ,
+678   ,
+690   ,
+702   ,
+714   ,
+727   ,
+739   ,
+752   ,
+765   ,
+778   ,
+791   ,
+804   ,
+817   ,
+831   ,
+844   ,
+858   ,
+871   ,
+885   ,
+899   ,
+913   ,
+927   ,
+941   ,
+956   ,
+970   ,
+985   ,
+999   ,
+1014  ,
+1024  ,
+1044  ,
+1059  ,
+1074  ,
+1089  ,
+1105  ,
+1120  ,
+1136  ,
+1152  ,
+1168  ,
+1184  ,
+1200  ,
+1216  ,
+1232  ,
+1248  ,
+1265  ,
+1281  ,
+1298  ,
+1315  ,
+1332  ,
+1349  ,
+1366  ,
+1383  ,
+1401  ,
+1418  ,
+1436  ,
+1453  ,
+1471  ,
+1489  ,
+1507  ,
+1525  ,
+1543  ,
+1562  ,
+1580  ,
+1599  ,
+1617  ,
+1636  ,
+1655  ,
+1674  ,
+1693  ,
+1712  ,
+1732  ,
+1751  ,
+1770  ,
+1790  ,
+1810  ,
+1830  ,
+1850  ,
+1870  ,
+1890  ,
+1910  ,
+1930  ,
+1951  ,
+1972  ,
+1992  ,
+2013  ,
+2034  ,
+2055  ,
+2076  ,
+2097  ,
+2119  ,
+2140  ,
+2162  ,
+2183  ,
+2205  ,
+2227  ,
+2249  ,
+2271  ,
+2293  ,
+2316  ,
+2338  ,
+2361  ,
+2383  ,
+2406  ,
+2429  ,
+2452  ,
+2475  ,
+2498  ,
+2522  ,
+2545  ,
+2568  ,
+2592  ,
+2616  ,
+2640  ,
+2664  ,
+2688  ,
+2712  ,
+2736  ,
+2760  ,
+2785  ,
+2810  ,
+2834  ,
+2859  ,
+2884  ,
+2909  ,
+2934  ,
+2959  ,
+2985  ,
+3010  ,
+3036  ,
+3061  ,
+3087  ,
+3113  ,
+3139  ,
+3165  ,
+3191  ,
+3218  ,
+3244  ,
+3271  ,
+3297  ,
+3324  ,
+3351  ,
+3378  ,
+3405  ,
+3432  ,
+3460  ,
+3487  ,
+3515  ,
+3515
 };
 /*PRIZE:Added by lvyuanchuan,X9-534,20230103 end*/
 //prize add by wangfei for lcd hardware info 20210726 start
@@ -133,6 +361,7 @@ static struct i2c_driver _lcm_i2c_driver = {
 		.of_match_table = _lcm_i2c_of_match,
 	},
 };
+static unsigned int g_current_level = 0;
 
 /*****************************************************************************
  * Function
@@ -591,6 +820,107 @@ static void lcm_panel_init(struct lcm *ctx)
 	lcm_dcs_write_seq_static(ctx,0xCA,0x80);
 	lcm_dcs_write_seq_static(ctx,0xFE,0x40);
 	lcm_dcs_write_seq_static(ctx,0xBD,0x00);
+
+//1080*2400   VESA  DSC1.1  3x   ( H1V60 10bpc_10bpp )
+lcm_dcs_write_seq_static(ctx,0xFE,0xD2); // switch to D2 page  
+
+lcm_dcs_write_seq_static(ctx,0x50,0x11); // pps000{0x7:3]{0x3:0) =(cfg) DSC_VERSION_MAJOR{0x3:0], DSC_VERSION_MINOR{0x3:0)
+lcm_dcs_write_seq_static(ctx,0x51,0xab); // pps003{0x7:4]{0x3:0)=(cfg) bpc{0x3:0], linebuf_depth{0x3:0) = {bits_per_component{0x3:0], LINE_BUFFER_BPC{0x3:0)
+lcm_dcs_write_seq_static(ctx,0x52,0x30); // pps004{0x5]{0x4]{0x3]{0x2]{0x1:0] =(cfg) BP, not_useYuvInput(enc_convert_RGB2YCoCg), simple422, VBR, bpp{0x9:8) = {BLOCK_PRED_ENABLE, ~USE_YUV_INPUT, SIMPLE_422, VBR_ENABLE, bits_per_pixel{0x9:8)
+lcm_dcs_write_seq_static(ctx,0x53,0x09); // pps006{0x7:0)=(cfg) pic_height{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x54,0x60); // pps007{0x7:0)=(cfg) pic_height{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x55,0x04); // pps008{0x7:0)=(cfg) pic_width{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x56,0x38); // pps009{0x7:0)=(cfg) pic_width{0x7:0] }
+lcm_dcs_write_seq_static(ctx,0x58,0x00); // pps010{0x7:0)=(cfg) slice_height{0x15:8) = SLICE_HEIGHT{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x59,0x28); // pps011{0x7:0)=(cfg) slice_height{0x7:0)  = SLICE_HEIGHT{0x7:0) 
+lcm_dcs_write_seq_static(ctx,0x5a,0x04); // pps012{0x7:0)=(cfg) slice_width{0x15:8)  = SLICE_WIDTH{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x5b,0x38); // pps013{0x7:0)=(cfg) slice_width{0x7:0)   = SLICE_WIDTH{0x7:0) 
+lcm_dcs_write_seq_static(ctx,0x5c,0x01); // pps016{0x1:0)=(cfg) initial_xmit_delay{0x9:8) = {INITIAL_DELAY{0x9:8)
+lcm_dcs_write_seq_static(ctx,0x5d,0x9a); // pps017{0x7:0)=(cfg) initial_xmit_delay{0x7:0) = {INITIAL_DELAY{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x5e,0x19); // pps021{0x5:0)=(dyn) initial_scale_value{0x5:0)
+lcm_dcs_write_seq_static(ctx,0x5f,0x04); // pps022{0x7:0)=(dyn) scale_increment_interval{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x60,0xce); // pps023{0x7:0)=(dyn) scale_increment_interval{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x61,0x00); // pps024{0x3:0)=(dyn) scale_decrement_interval{0x11:8)
+lcm_dcs_write_seq_static(ctx,0x62,0x15); // pps025{0x7:0)=(dyn) scale_decrement_interval{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x63,0x0c); // pps027{0x4:0)=(dyn) first_line_bpg_offset{0x4:0) = {first_line_bpg_ofs{0x4:0)
+lcm_dcs_write_seq_static(ctx,0x64,0x02); // pps028{0x7:0)=(dyn) nfl_bpg_offset{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x65,0x77); // pps029{0x7:0)=(dyn) nfl_bpg_offset{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x66,0x01); // pps030{0x7:0)=(dyn) slice_bpg_offset{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x67,0x8f); // pps031{0x7:0)=(dyn) slice_bpg_offset{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x68,0x16); // pps032{0x7:0)=(cfg) initial_offset{0x15:8) = {INITIAL_FULLNESS_OFFSET{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x69,0x00); // pps033{0x7:0)=(cfg) initial_offset{0x7:0)  = {INITIAL_FULLNESS_OFFSET {0x7:0)
+lcm_dcs_write_seq_static(ctx,0x6a,0x10); // pps034{0x7:0)=(dyn) final_offset{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x6b,0xec); // pps035{0x7:0)=(dyn) final_offset{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x6c,0x07); // pps036{0x4:0)=(cfg) flatness_min_qp{0x4:0) = {FLATNESS_MIN_QP{0x4:0)
+lcm_dcs_write_seq_static(ctx,0x6d,0x10); // pps037{0x4:0)=(cfg) flatness_max_qp{0x4:0) = {FLATNESS_MAX_QP{0x4:0)
+lcm_dcs_write_seq_static(ctx,0x6e,0x20); // pps038{0x7:0)=(cfg) rc_model_size{0x15:8) = {RC_MODEL_SIZE{0x15:8)
+lcm_dcs_write_seq_static(ctx,0x6f,0x00); // pps039{0x7:0)=(cfg) rc_model_size{0x7:0)  = {RC_MODEL_SIZE{0x7:0)
+lcm_dcs_write_seq_static(ctx,0x70,0x06); // pps040{0x3:0)=(cfg) rc_edge_factor{0x3:0) = {RC_EDGE_FACTOR{0x3:0)
+lcm_dcs_write_seq_static(ctx,0x71,0x0f); // pps041{0x4:0)=(cfg) rc_quant_incr_limit0{0x4:0) = {RC_QUANT_INCR_LIMIT0{0x4:0)
+lcm_dcs_write_seq_static(ctx,0x72,0x0f); // pps042{0x4:0)=(cfg) rc_quant_incr_limit1{0x4:0) = {RC_QUANT_INCR_LIMIT1{0x4:0)
+lcm_dcs_write_seq_static(ctx,0x73,0x33); // pps043{0x7:4]{0x3:0)=(cfg) rc_tgt_offset_hi{0x3:0], rc_tgt_offset_lo{0x3:0) = {RC_TGT_OFFSET_HI{0x3:0], RC_TGT_OFFSET_LO{0x3:0)
+lcm_dcs_write_seq_static(ctx,0x74,0x0e); // pps044{0x7:0]<<6=(cfg) rc_buf_thresh{0x0] {0x13:0) = RC_BUF_THRESH{0x0] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x75,0x1c); // pps045{0x7:0]<<6=(cfg) rc_buf_thresh{0x1] {0x13:0) = RC_BUF_THRESH{0x1] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x76,0x2a); // pps046{0x7:0]<<6=(cfg) rc_buf_thresh{0x2] {0x13:0) = RC_BUF_THRESH{0x2] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x77,0x38); // pps047{0x7:0]<<6=(cfg) rc_buf_thresh{0x3] {0x13:0) = RC_BUF_THRESH{0x3] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x78,0x46); // pps048{0x7:0]<<6=(cfg) rc_buf_thresh{0x4] {0x13:0) = RC_BUF_THRESH{0x4] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x79,0x54); // pps049{0x7:0]<<6=(cfg) rc_buf_thresh{0x5] {0x13:0) = RC_BUF_THRESH{0x5] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7a,0x62); // pps050{0x7:0]<<6=(cfg) rc_buf_thresh{0x6] {0x13:0) = RC_BUF_THRESH{0x6] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7b,0x69); // pps051{0x7:0]<<6=(cfg) rc_buf_thresh{0x7] {0x13:0) = RC_BUF_THRESH{0x7] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7c,0x70); // pps052{0x7:0]<<6=(cfg) rc_buf_thresh{0x8] {0x13:0) = RC_BUF_THRESH{0x8] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7d,0x77); // pps053{0x7:0]<<6=(cfg) rc_buf_thresh{0x9] {0x13:0) = RC_BUF_THRESH{0x9] {0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7e,0x79); // pps054{0x7:0]<<6=(cfg) rc_buf_thresh{0x10]{0x13:0) = RC_BUF_THRESH{0x10]{0x13:0]
+lcm_dcs_write_seq_static(ctx,0x7f,0x7b); // pps055{0x7:0]<<6=(cfg) rc_buf_thresh{0x11]{0x13:0) = RC_BUF_THRESH{0x11]{0x13:0]
+lcm_dcs_write_seq_static(ctx,0x80,0x7d); // pps056{0x7:0]<<6=(cfg) rc_buf_thresh{0x12]{0x13:0) = RC_BUF_THRESH{0x12]{0x13:0]
+lcm_dcs_write_seq_static(ctx,0x81,0x7e); // pps057{0x7:0]<<6=(cfg) rc_buf_thresh{0x13]{0x13:0) = RC_BUF_THRESH{0x13]{0x13:0]
+lcm_dcs_write_seq_static(ctx,0x82,0x01); // pps058{0x7:3]{0x2:0)=(cfg) range_min_qp_0{0x4:0] , range_max_qp_0{0x4:2]      } = {RC_MINQP{0x0]{0x4:0], RC_MAXQP{0x0]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x83,0xc2); // pps059{0x7:6]{0x5:0)=(cfg) range_max_qp_0{0x1:0] , range_bpg_offset_0{0x5:0]  } = {RC_MAXQP{0x0]{0x1:0], RC_OFFSET{0x0]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x84,0x22); // pps060{0x7:3]{0x2:0)=(cfg) range_min_qp_1{0x4:0] , range_max_qp_1{0x4:2]      } = {RC_MINQP{0x1]{0x4:0], RC_MAXQP{0x1]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x85,0x00); // pps061{0x7:6]{0x5:0)=(cfg) range_max_qp_1{0x1:0] , range_bpg_offset_1{0x5:0]  } = {RC_MAXQP{0x1]{0x1:0], RC_OFFSET{0x1]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x86,0x2a); // pps062{0x7:3]{0x2:0)=(cfg) range_min_qp_2{0x4:0] , range_max_qp_2{0x4:2]      } = {RC_MINQP{0x2]{0x4:0], RC_MAXQP{0x2]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x87,0x40); // pps063{0x7:6]{0x5:0)=(cfg) range_max_qp_2{0x1:0] , range_bpg_offset_2{0x5:0]  } = {RC_MAXQP{0x2]{0x1:0], RC_OFFSET{0x2]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x88,0x32); // pps064{0x7:3]{0x2:0)=(cfg) range_min_qp_3{0x4:0] , range_max_qp_3{0x4:2]      } = {RC_MINQP{0x3]{0x4:0], RC_MAXQP{0x3]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x89,0xbe); // pps065{0x7:6]{0x5:0)=(cfg) range_max_qp_3{0x1:0] , range_bpg_offset_3{0x5:0]  } = {RC_MAXQP{0x3]{0x1:0], RC_OFFSET{0x3]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x8a,0x3a); // pps066{0x7:3]{0x2:0)=(cfg) range_min_qp_4{0x4:0] , range_max_qp_4{0x4:2]      } = {RC_MINQP{0x4]{0x4:0], RC_MAXQP{0x4]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x8b,0xfc); // pps067{0x7:6]{0x5:0)=(cfg) range_max_qp_4{0x1:0] , range_bpg_offset_4{0x5:0]  } = {RC_MAXQP{0x4]{0x1:0], RC_OFFSET{0x4]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x8c,0x3a); // pps068{0x7:3]{0x2:0)=(cfg) range_min_qp_5{0x4:0] , range_max_qp_5{0x4:2]      } = {RC_MINQP{0x5]{0x4:0], RC_MAXQP{0x5]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x8d,0xfa); // pps069{0x7:6]{0x5:0)=(cfg) range_max_qp_5{0x1:0] , range_bpg_offset_5{0x5:0]  } = {RC_MAXQP{0x5]{0x1:0], RC_OFFSET{0x5]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x8e,0x3a); // pps070{0x7:3]{0x2:0)=(cfg) range_min_qp_6{0x4:0] , range_max_qp_6{0x4:2]      } = {RC_MINQP{0x6]{0x4:0], RC_MAXQP{0x6]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x8f,0xf8); // pps071{0x7:6]{0x5:0)=(cfg) range_max_qp_6{0x1:0] , range_bpg_offset_6{0x5:0]  } = {RC_MAXQP{0x6]{0x1:0], RC_OFFSET{0x6]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x90,0x3b); // pps072{0x7:3]{0x2:0)=(cfg) range_min_qp_7{0x4:0] , range_max_qp_7{0x4:2]      } = {RC_MINQP{0x7]{0x4:0], RC_MAXQP{0x7]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x91,0x38); // pps073{0x7:6]{0x5:0)=(cfg) range_max_qp_7{0x1:0] , range_bpg_offset_7{0x5:0]  } = {RC_MAXQP{0x7]{0x1:0], RC_OFFSET{0x7]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x92,0x3b); // pps074{0x7:3]{0x2:0)=(cfg) range_min_qp_8{0x4:0] , range_max_qp_8{0x4:2]      } = {RC_MINQP{0x8]{0x4:0], RC_MAXQP{0x8]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x93,0x78); // pps075{0x7:6]{0x5:0)=(cfg) range_max_qp_8{0x1:0] , range_bpg_offset_8{0x5:0]  } = {RC_MAXQP{0x8]{0x1:0], RC_OFFSET{0x8]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x94,0x3b); // pps076{0x7:3]{0x2:0)=(cfg) range_min_qp_9{0x4:0] , range_max_qp_9{0x4:2]      } = {RC_MINQP{0x9]{0x4:0], RC_MAXQP{0x9]{0x4:2]    }
+lcm_dcs_write_seq_static(ctx,0x95,0x76); // pps077{0x7:6]{0x5:0)=(cfg) range_max_qp_9{0x1:0] , range_bpg_offset_9{0x5:0]  } = {RC_MAXQP{0x9]{0x1:0], RC_OFFSET{0x9]{0x5:0]   }
+lcm_dcs_write_seq_static(ctx,0x96,0x4b); // pps078{0x7:3]{0x2:0)=(cfg) range_min_qp_10{0x4:0], range_max_qp_10{0x4:2]     } = {RC_MINQP{0x10]{0x4:0], RC_MAXQP{0x10]{0x4:2]  }
+lcm_dcs_write_seq_static(ctx,0x97,0xb6); // pps079{0x7:6]{0x5:0)=(cfg) range_max_qp_10{0x1:0], range_bpg_offset_10{0x5:0] } = {RC_MAXQP{0x10]{0x1:0], RC_OFFSET{0x10]{0x5:0] }
+lcm_dcs_write_seq_static(ctx,0x98,0x4b); // pps080{0x7:3]{0x2:0)=(cfg) range_min_qp_11{0x4:0], range_max_qp_11{0x4:2]     } = {RC_MINQP{0x11]{0x4:0], RC_MAXQP{0x11]{0x4:2]  }
+lcm_dcs_write_seq_static(ctx,0x99,0xf6); // pps081{0x7:6]{0x5:0)=(cfg) range_max_qp_11{0x1:0], range_bpg_offset_11{0x5:0] } = {RC_MAXQP{0x11]{0x1:0], RC_OFFSET{0x11]{0x5:0] }
+lcm_dcs_write_seq_static(ctx,0x9a,0x4c); // pps082{0x7:3]{0x2:0)=(cfg) range_min_qp_12{0x4:0], range_max_qp_12{0x4:2]     } = {RC_MINQP{0x12]{0x4:0], RC_MAXQP{0x12]{0x4:2]  }
+lcm_dcs_write_seq_static(ctx,0x9b,0x34); // pps083{0x7:6]{0x5:0)=(cfg) range_max_qp_12{0x1:0], range_bpg_offset_12{0x5:0] } = {RC_MAXQP{0x12]{0x1:0], RC_OFFSET{0x12]{0x5:0] }
+lcm_dcs_write_seq_static(ctx,0x9c,0x5c); // pps084{0x7:3]{0x2:0)=(cfg) range_min_qp_13{0x4:0], range_max_qp_13{0x4:2]     } = {RC_MINQP{0x13]{0x4:0], RC_MAXQP{0x13]{0x4:2]  }
+lcm_dcs_write_seq_static(ctx,0x9d,0x74); // pps085{0x7:6]{0x5:0)=(cfg) range_max_qp_13{0x1:0], range_bpg_offset_13{0x5:0] } = {RC_MAXQP{0x13]{0x1:0], RC_OFFSET{0x13]{0x5:0] }
+lcm_dcs_write_seq_static(ctx,0x9e,0x8c); // pps086{0x7:3]{0x2:0)=(cfg) range_min_qp_14{0x4:0], range_max_qp_14{0x4:2]     } = {RC_MINQP{0x14]{0x4:0], RC_MAXQP{0x14]{0x4:2]  }
+lcm_dcs_write_seq_static(ctx,0x9f,0xf4); // pps087{0x7:6]{0x5:0)=(cfg) range_max_qp_14{0x1:0], range_bpg_offset_14{0x5:0] } = {RC_MAXQP{0x14]{0x1:0], RC_OFFSET{0x14]{0x5:0] }
+lcm_dcs_write_seq_static(ctx,0xa2,0x05); // pps014{0x7:0)=(dyn) chunk_size{0x15:8)
+lcm_dcs_write_seq_static(ctx,0xa3,0x46); // pps015{0x7:0)=(dyn) chunk_size{0x7:0)
+lcm_dcs_write_seq_static(ctx,0xa4,0x00); // pps088{0x1]{0x0]  =(cfg) native_420, native_422} = {NATIVE_420, NATIVE_422}
+lcm_dcs_write_seq_static(ctx,0xa5,0x00); // pps089{0x4:0)=(dyn) second_line_bpg_offset{0x4:0)
+lcm_dcs_write_seq_static(ctx,0xa6,0x00); // pps090{0x7:0)=(dyn) nsl_bpg_offset{0x15:8)
+lcm_dcs_write_seq_static(ctx,0xa7,0x00); // pps091{0x7:0)=(dyn) nsl_bpg_offset{0x7:0)
+lcm_dcs_write_seq_static(ctx,0xa9,0x00); // pps092{0x7:0)=(dyn) second_line_offset_adj{0x15:8)
+lcm_dcs_write_seq_static(ctx,0xaa,0x00); // pps093{0x7:0)=(dyn) second_line_offset_adj{0x7:0)
+lcm_dcs_write_seq_static(ctx,0xa0,0xa0); // pps005{0x7:0)=(cfg) bpp{0x7:0) = {bits_per_pixel{0x7:0)
+
+lcm_dcs_write_seq_static(ctx,0x4F,0x08); // 0x4FD2=0x08, use ENG PPS
+
+lcm_dcs_write_seq_static(ctx,0xFE,0xD6); //1080
+lcm_dcs_write_seq_static(ctx,0x06,0x11); 
+lcm_dcs_write_seq_static(ctx,0x03,0x01); 
+lcm_dcs_write_seq_static(ctx,0x04,0xB4); 
+lcm_dcs_write_seq_static(ctx,0x05,0x68); 
+
 	lcm_dcs_write_seq_static(ctx,0xFE,0x00);
 	lcm_dcs_write_seq_static(ctx,0xFA,0x01);
 	lcm_dcs_write_seq_static(ctx,0xC2,0x08);
@@ -727,6 +1057,8 @@ static int lcm_unprepare(struct drm_panel *panel)
 
 #endif
 	ctx->hbm_en = false;
+	/*przie update hbm_stat X9LAVA-953 20230329*/
+	ctx->hbm_stat = false;
 	return 0;
 }
 
@@ -949,7 +1281,9 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 	 	else if(level == 270)
 	 	{
 	 		/*PRIZE:Added by lvyuanchuan,X9-534,20230103*/
-	 		level_normal = bl_level * BLK_LEVEL_MAP3/255 + BLK_LEVEL_OFFSET;
+			//level_normal = bl_level * BLK_LEVEL_MAP3/255 + BLK_LEVEL_OFFSET;
+			/*PRIZE:modify by durunshen,MT6877-98,20230530*/
+			level_normal = Gamma_to_level[bl_level] + BLK_LEVEL_OFFSET;
 			bl_tb0[1] = (level_normal>>8)&0xf;
 			bl_tb0[2] = (level_normal)&0xff;
 			if (!cb)
@@ -968,6 +1302,7 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 		}
 		else
 			reg_level = 0;
+        g_current_level = level;
 		bl_tb0[1] = (reg_level>>8)&0xf;
 		bl_tb0[2] = (reg_level)&0xff;
 		pr_err("level{ %d - %d },bl_tb0[1] = %d,bl_tb0[2] = %d\n",level,reg_level,bl_tb0[1],bl_tb0[2]);
@@ -985,7 +1320,7 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 unsigned short led_level_disp_get(char *name)
 {
     int trans_level = 0;
-	trans_level = Gamma_to_level[bl_level];
+	trans_level = Gamma_to_level[g_current_level];
 	pr_err("[%s]: name: %s, level : %d",__func__, name, trans_level);
 	return trans_level;
 }

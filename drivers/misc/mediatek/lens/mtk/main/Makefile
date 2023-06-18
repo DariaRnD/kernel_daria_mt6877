@@ -47,6 +47,7 @@ mainaf-y  += common/dw9714af/DW9714AF.o
 mainaf-y  += common/dw9800waf/DW9800WAF.o
 mainaf-y  += common/dw9814af/DW9814AF.o
 mainaf-y  += common/dw9718af/DW9718AF.o
+mainaf-y  += common/dw9718gaf/DW9718AF.o
 mainaf-y  += common/dw9718saf/DW9718SAF.o
 mainaf-y  += common/dw9718taf/DW9718TAF.o
 mainaf-y  += common/dw9719taf/DW9719TAF.o
@@ -89,5 +90,6 @@ endif
 mainaf-y  += common/aw8601xaf/AW8601xAF.o
 mainaf-y  += common/aw86014af/AW86014AF.o
 mainaf-y  += common/gt9764baf/GT9764BAF.o
+mainaf-y  += common/aw86017csraf/AW86017CSRAF.o
 #/*prize add by zhuzhengjiang for lens:zc535 20220110 end*/
 

@@ -104,11 +104,13 @@
 /*prize modified by lvyuanchuan for Optimization of low-voltage switching processes,20221130 end*/
 /*PRIZE:modified by lvyuanchuan,x9-867,20230201 start*/
 #define COMPENSATE_LEVEL1			(8100)
-#define COMPENSATE_TEMP1			(80)
+#define COMPENSATE_TEMP1			(90)
 #define COMPENSATE_LEVEL2			(6100)
-#define COMPENSATE_TEMP2			(70)
+#define COMPENSATE_TEMP2			(80)
 #define COMPENSATE_LEVEL3			(4000)
-#define COMPENSATE_TEMP3			(50)
+#define COMPENSATE_TEMP3			(60)
+#define ABS_TEMP							(20)
+
 /*PRIZE:modified by lvyuanchuan,x9-867,20230201 end*/
 struct cw_battery {
 	struct i2c_client *client;

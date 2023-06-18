@@ -52,7 +52,7 @@
 #include "sd_ops.h"
 #include "sdio_ops.h"
 #include "mtk_mmc_block.h"
-#include "../host/mtk-sd-dbg.h"
+
 /* The max erase timeout, used when host->max_busy_timeout isn't specified */
 #define MMC_ERASE_TIMEOUT_MS	(60 * 1000) /* 60 s */
 
@@ -166,8 +166,6 @@ void mmc_request_done(struct mmc_host *host, struct mmc_request *mrq)
 	mmc_complete_cmd(mrq);
 
 	trace_mmc_request_done(host, mrq);
-
-	dbg_add_host_log(host, 1, cmd->opcode, cmd->resp[0]);
 
 	/*
 	 * We list various conditions for the command to be considered
@@ -1258,16 +1256,6 @@ int mmc_cqe_start_req(struct mmc_host *host, struct mmc_request *mrq)
 
 	mmc_mrq_pr_debug(host, mrq, true);
 
-	if(mrq->cmd)
-		dbg_add_host_log(host, 5, mrq->cmd->opcode, mrq->cmd->arg);
-
-	if(mrq->data){
-		if (mrq->data->flags & MMC_DATA_WRITE)
-			dbg_add_host_log(host, 5, MMC_EXECUTE_WRITE_TASK, mrq->data->blocks);//CMD47
-		else if (mrq->data->flags & MMC_DATA_READ)
-			dbg_add_host_log(host, 5, MMC_EXECUTE_READ_TASK, mrq->data->blocks);//CMD46
-	}
-
 	err = mmc_mrq_prep(host, mrq);
 	if (err)
 		goto out_err;
@@ -1283,10 +1271,10 @@ int mmc_cqe_start_req(struct mmc_host *host, struct mmc_request *mrq)
 
 out_err:
 	if (mrq->cmd) {
-		pr_info("%s: failed to start CQE direct CMD%u, error %d\n",
+		pr_debug("%s: failed to start CQE direct CMD%u, error %d\n",
 			 mmc_hostname(host), mrq->cmd->opcode, err);
 	} else {
-		pr_info("%s: failed to start CQE transfer for tag %d, error %d\n",
+		pr_debug("%s: failed to start CQE transfer for tag %d, error %d\n",
 			 mmc_hostname(host), mrq->tag, err);
 	}
 	return err;
@@ -1315,24 +1303,15 @@ void mmc_cqe_request_done(struct mmc_host *host, struct mmc_request *mrq)
 	if (mrq->cmd) {
 		pr_debug("%s: CQE req done (direct CMD%u): %d\n",
 			 mmc_hostname(host), mrq->cmd->opcode, mrq->cmd->error);
-		dbg_add_host_log(host, 6, mrq->cmd->opcode, mrq->cmd->resp[0]);
 	} else {
 		pr_debug("%s: CQE transfer done tag %d\n",
 			 mmc_hostname(host), mrq->tag);
 	}
 
-	if (mrq->data){
-		if (mrq->data->flags & MMC_DATA_WRITE){
-			pr_debug("%s:     %d bytes transferred: %d WRITE\n",
-				 mmc_hostname(host),
-				 mrq->data->bytes_xfered, mrq->data->error);
-			dbg_add_host_log(host, 6, MMC_EXECUTE_WRITE_TASK, mrq->data->error);//CMD47
-		} else if (mrq->data->flags & MMC_DATA_READ){
-			pr_debug("%s:     %d bytes transferred: %d READ\n",
-				 mmc_hostname(host),
-				 mrq->data->bytes_xfered, mrq->data->error);
-			dbg_add_host_log(host, 6, MMC_EXECUTE_READ_TASK, mrq->data->error);//CMD46
-		}
+	if (mrq->data) {
+		pr_debug("%s:     %d bytes transferred: %d\n",
+			 mmc_hostname(host),
+			 mrq->data->bytes_xfered, mrq->data->error);
 	}
 
 	mrq->done(mrq);
@@ -1792,14 +1771,12 @@ int mmc_execute_tuning(struct mmc_card *card)
 
 	err = host->ops->execute_tuning(host, opcode);
 
-	if (err) {
-		pr_info("%s: tuning execution failed: %d\n",
+	if (err)
+		pr_err("%s: tuning execution failed: %d\n",
 			mmc_hostname(host), err);
-	} else {
-		pr_info("%s: tuning execution ok: %d\n",
-			mmc_hostname(host), err);
+	else
 		mmc_retune_enable(host);
-	}
+
 	return err;
 }
 

@@ -3,6 +3,7 @@
  * Copyright (c) 2019 MediaTek Inc.
 */
 #include <linux/types.h>
+#include <linux/delay.h>
 #include <mt-plat/v1/mtk_battery.h>
 #include <mt-plat/v1/mtk_charger.h>
 #include <mt-plat/mtk_boot.h>
@@ -82,6 +83,22 @@ signed int battery_get_bat_avg_current(void)
 _CODE_DEFINEDE
 	#else
 
+signed int battery_is_present(void)
+{
+#if defined(CONFIG_MTK_CW2217_SUPPORT)
+	union power_supply_propval value;
+	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	if (cwfg_psy) {
+		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_PRESENT, &value);
+		pr_info("%s:get cw-bat success, present(%d)\n",__func__, value.intval);
+		if(value.intval){
+			return 1;
+		}
+	}
+#endif
+	return 0;
+}
+
 signed int battery_get_bat_voltage(void)
 {
 #if defined(CONFIG_MTK_CW2217_SUPPORT)
@@ -107,9 +124,9 @@ signed int battery_get_bat_current(void)
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CURRENT_NOW, &value);
 		pr_info("%s:get cw-bat success, curr(%d)\n",__func__, value.intval);
-	
+
 		return value.intval;
-	}	
+	}
 #endif
 	is_charging = gauge_get_current(&curr_val);
 	if (is_charging == false)
@@ -146,18 +163,31 @@ signed int battery_get_soc(void)
 signed int battery_get_uisoc(void)
 {
 	struct mtk_battery *gm = get_mtk_battery();
-
+/*prize added by lvyuanchuan,X9LAVA-1234,20230516 start*/
 #if defined(CONFIG_MTK_CW2217_SUPPORT)
+	#define FG_RETRY_COUNT          9
+	int loop = 0;
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = NULL;
+
+retry:
+	cwfg_psy = power_supply_get_by_name("cw-bat");
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CAPACITY, &value);
 		pr_info("%s:get cw-bat success, ui_soc(%d)\n",__func__, value.intval);
 		/*debug for cp*/
 		return value.intval;
+	}else{
+			if(loop++ < FG_RETRY_COUNT) {
+				mdelay(100);
+				pr_info("%s:waiting [%d] times ...\n",__func__, loop);
+				goto retry;
+			}
 	}
-	return 50;
-#endif	
+	pr_info("%s:waiting overtimes ...\n",__func__);
+	return 2;
+/*prize added by lvyuanchuan,X9LAVA-1234,20230516 end*/
+#endif
 	if (gm != NULL) {
 		int boot_mode = gm->boot_mode;
 
@@ -182,16 +212,16 @@ signed int battery_get_bat_temperature(void)
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_TEMP, &value);
 		pr_info("%s:get cw-bat success, temp(%d)\n",__func__, value.intval);
-	
+
 		return value.intval/10;
-	}	
+	}
 	return 25;
 #else
 	if (is_battery_init_done())
 		return force_get_tbat(true);
 	else
 		return -127;
-#endif			
+#endif
 }
 
 signed int battery_get_ibus(void)
@@ -213,9 +243,9 @@ signed int battery_get_bat_avg_current(void)
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CURRENT_NOW, &value);
 		pr_info("%s:get cw-bat success, curr(%d)\n",__func__, value.intval);
-	
+
 		return value.intval;
-	}	
+	}
 #endif
 	return gauge_get_average_current(&valid);
 }
@@ -299,9 +329,9 @@ bool battery_is_battery_exist(void)
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_PRESENT, &value);
 		pr_info("%s:get cw-bat success, present(%d)\n",__func__, value.intval);
-	
+
 		return value.intval;
-	}	
+	}
 #endif
 	return pmic_is_battery_exist();
 }

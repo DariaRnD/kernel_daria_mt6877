@@ -24,6 +24,20 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 /*******************************************************************************
 *prize add, order:0-9-a-z ,start
 *******************************************************************************/
+/* DRV added by chenjiaxi, start */
+#if defined(ILI7807D_FHD_DSI_VDO_AUO_DRIP_INCELL)
+	&ili7807d_fhd_dsi_vdo_auo_drip_incell_lcm_drv,
+#endif
+#if defined(ILI7807D_FHD_DSI_VDO_BOE_DRIP_INCELL)
+	&ili7807d_fhd_dsi_vdo_boe_drip_incell_lcm_drv,
+#endif
+#if defined(R61322_FHD_DSI_VDO_SHARP)
+	&r61322_fhd_dsi_vdo_sharp_lcm_drv,
+#endif
+#if defined(HX8399_FHD_DSI_VDO_BOE)
+	&hx8399_fhd_dsi_vdo_boe_lcm_drv,
+#endif
+/* DRV added by chenjiaxi, end */
 #if defined(TD4321_HDPLUS_DSI_VDO_INCELL)
 	&td4321_hdplus_dsi_vdo_incell_lcm_drv,
 #endif
@@ -70,6 +84,9 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&gc9503cv_fwvgap_dsi_vdo_tn_new_lcm_drv,
 #endif
 //prize add by xuejian lcd 20220620 end
+#if defined(GC9503NP_FWVGAP_DSI_VDO_CTC545_QCG)
+	&gc9503np_fwvgap_dsi_vdo_ctc545_qcg_lcm_drv,
+#endif
 /*prize-add lcm-zhaopengge-20200826-start*/	
 #if defined(ILI9882_HDP_DSI_VDO_INCELL)
 	&ili9882_hdp_dsi_vdo_incell_lcm_drv,
@@ -81,7 +98,43 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&ili9882n_hdp_dsi_vdo_incell_truly_lcm_drv,
 #endif
 //dvr add by huangyu ILI9882N 20230213 end 
- 
+
+//dvr add by wangwei1 ILI9882Q 20230424 start
+#if defined(ILI9882Q_HDP_DSI_VDO_INCELL_HUAYING)
+        &ili9882q_hdp_dsi_vdo_incell_huaying_lcm_drv,
+#endif
+//dvr add by wangwei1 ILI9882Q 20230424 end
+
+//dvr add by wangwei1 hx8394f 20230506 start
+#if defined(HX8394F_HDP_DSI_VDO_ONCELL_TXD)
+        &hx8394f_hdp_dsi_vdo_oncell_txd_lcm_drv,
+#endif
+//dvr add by wangwei1 hx8394f 20230506 end
+
+//drv add by wangwei1 for gms board detect 20230509 start
+#if defined(ILI9882Q_HDP_DSI_VDO_INCELL_HUAYING_GMS)
+        &ili9882q_hdp_dsi_vdo_incell_huaying_gms_lcm_drv,
+#endif
+//drv add by wangwei1 for gms board detect 20230509 end
+
+//dvr add by wangwei1 st7123 20230425 start
+#if defined(ST7123_HDP_DSI_VDO_INCELL_DZX)
+        &st7123_hdp_dsi_vdo_incell_dzx_lcm_drv,
+#endif
+//dvr add by wangwei1 st7123 20230425 end
+
+//dvr add by wangwei1 TXD ILI9882Q 20230505 start
+#if defined(ILI9882Q_HDP_DSI_VDO_INCELL_TXD)
+        &ili9882q_hdp_dsi_vdo_incell_txd_lcm_drv,
+#endif
+//dvr add by wangwei1 TXD ILI9882Q 20230505 end
+
+//dvr add by wangwei1 TXD ILI9882Q 20230519 start
+#if defined(ILI9882Q_HDP_DSI_VDO_INCELL_TXD_GMS)
+        &ili9882q_hdp_dsi_vdo_incell_txd_gms_lcm_drv,
+#endif
+//dvr add by wangwei1 TXD ILI9882Q 20230519 end
+
 //prize-add-pengzhipeng-20200916-start
 #if defined(HX83112_FHDP_DSI_VDO_KN)
 	&hx83112_fhdp_dsi_vdo_kn_drv,

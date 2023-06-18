@@ -38,43 +38,43 @@
 #define MODE_2_FPS                  120
 #define MODE_2_VFP                  40
 #define MODE_2_HFP                  155
-#define MODE_2_DATA_RATE            760 //1004 prize add by yinhanhan for hbm 20230311
+#define MODE_2_DATA_RATE            1000 //1000 prize add by xuejian for 10bit data_rate 20230427
 /*Parameter setting for mode 2 End*/
 
 #define LFR_EN                      1
 /* DSC RELATED */
 
-#define DSC_ENABLE                  0
+#define DSC_ENABLE                  1
 #define DSC_VER                     17
 #define DSC_SLICE_MODE              0
 #define DSC_RGB_SWAP                0
-#define DSC_DSC_CFG                 34
+#define DSC_DSC_CFG                 2088
 #define DSC_RCT_ON                  1
-#define DSC_BIT_PER_CHANNEL         8
-#define DSC_DSC_LINE_BUF_DEPTH      9
+#define DSC_BIT_PER_CHANNEL         10
+#define DSC_DSC_LINE_BUF_DEPTH      11
 #define DSC_BP_ENABLE               1
-#define DSC_BIT_PER_PIXEL           128
+#define DSC_BIT_PER_PIXEL           160
 //define DSC_PIC_HEIGHT
 //define DSC_PIC_WIDTH
 #define DSC_SLICE_HEIGHT            40
-#define DSC_SLICE_WIDTH             540*2
-#define DSC_CHUNK_SIZE              540*2
-#define DSC_XMIT_DELAY              512
-#define DSC_DEC_DELAY               796
-#define DSC_SCALE_VALUE             32
-#define DSC_INCREMENT_INTERVAL      1325
-#define DSC_DECREMENT_INTERVAL      15
+#define DSC_SLICE_WIDTH             1080
+#define DSC_CHUNK_SIZE              1350
+#define DSC_XMIT_DELAY              410
+#define DSC_DEC_DELAY               688
+#define DSC_SCALE_VALUE             25
+#define DSC_INCREMENT_INTERVAL      1230
+#define DSC_DECREMENT_INTERVAL      21
 #define DSC_LINE_BPG_OFFSET         12
 #define DSC_NFL_BPG_OFFSET          631
-#define DSC_SLICE_BPG_OFFSET        326
-#define DSC_INITIAL_OFFSET          6144
-#define DSC_FINAL_OFFSET            4336
-#define DSC_FLATNESS_MINQP          3
-#define DSC_FLATNESS_MAXQP          12
+#define DSC_SLICE_BPG_OFFSET        399
+#define DSC_INITIAL_OFFSET          5632
+#define DSC_FINAL_OFFSET            4332
+#define DSC_FLATNESS_MINQP          7
+#define DSC_FLATNESS_MAXQP          16
 #define DSC_RC_MODEL_SIZE           8192
 #define DSC_RC_EDGE_FACTOR          6
-#define DSC_RC_QUANT_INCR_LIMIT0    11
-#define DSC_RC_QUANT_INCR_LIMIT1    11
+#define DSC_RC_QUANT_INCR_LIMIT0    15
+#define DSC_RC_QUANT_INCR_LIMIT1    15
 #define DSC_RC_TGT_OFFSET_HI        3
 #define DSC_RC_TGT_OFFSET_LO        3
 

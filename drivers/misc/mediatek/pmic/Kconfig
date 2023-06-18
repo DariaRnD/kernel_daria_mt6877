@@ -205,6 +205,15 @@ config CHRDET_VBUS_DETECTION
 	  Set y to enable it.
 	  Set n to disable it.
 
+config MTK_TB_WIFI_ONLY
+	bool "power config for wifi only projects."
+	default n
+	help
+	  power config for wifi only projects in kernel.
+          Turn off unused power.
+	  Set y to enable it.
+	  Set n to disable it.
+
 source "drivers/misc/mediatek/pmic/mt6370/Kconfig"
 source "drivers/misc/mediatek/pmic/mt6360/Kconfig"
 source "drivers/misc/mediatek/pmic/mt6397/Kconfig"

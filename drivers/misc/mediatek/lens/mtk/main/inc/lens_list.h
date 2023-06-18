@@ -302,6 +302,17 @@ extern long DW9718AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 extern int DW9718AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int DW9718AF_GetFileName(unsigned char *pFileName);
 
+#define DW9718GAF_SetI2Cclient DW9718GAF_SetI2Cclient_Main
+#define DW9718GAF_Ioctl DW9718GAF_Ioctl_Main
+#define DW9718GAF_Release DW9718GAF_Release_Main
+#define DW9718GAF_GetFileName DW9718GAF_GetFileName_Main
+extern int DW9718GAF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long DW9718GAF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			   unsigned long a_u4Param);
+extern int DW9718GAF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int DW9718GAF_GetFileName(unsigned char *pFileName);
+
 #define DW9718SAF_SetI2Cclient DW9718SAF_SetI2Cclient_Main
 #define DW9718SAF_Ioctl DW9718SAF_Ioctl_Main
 #define DW9718SAF_Release DW9718SAF_Release_Main
@@ -508,5 +519,16 @@ extern int AW86014AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 extern int AW86014AF_PowerDown(struct i2c_client *pstAF_I2Cclient,
 				int *pAF_Opened);
 extern int AW86014AF_GetFileName(unsigned char *pFileName);
+
+#define AW86017CSRAF_SetI2Cclient AW86017CSRAF_SetI2Cclient_Main
+#define AW86017CSRAF_Ioctl AW86017CSRAF_Ioctl_Main
+#define AW86017CSRAF_Release AW86017CSRAF_Release_Main
+#define AW86017CSRAF_GetFileName AW86017CSRAF_GetFileName_Main
+extern int AW86017CSRAF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long AW86017CSRAF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			   unsigned long a_u4Param);
+extern int AW86017CSRAF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int AW86017CSRAF_GetFileName(unsigned char *pFileName);
 //prize add by linchong 20220623 end
 #endif

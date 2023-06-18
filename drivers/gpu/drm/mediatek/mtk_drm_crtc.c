@@ -5684,6 +5684,115 @@ void mtk_drm_layer_dispatch_to_dual_pipe(
 		plane_state_r->pending.width, plane_state_r->pending.height);
 }
 
+void mtk_drm_crtc_plane_disable(struct drm_crtc *crtc, struct drm_plane *plane,
+			       struct mtk_plane_state *plane_state)
+{
+	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
+	unsigned int plane_index = to_crtc_plane_index(plane->index);
+	struct drm_crtc_state *crtc_state = crtc->state;
+	struct mtk_crtc_state *state = to_mtk_crtc_state(crtc_state);
+	struct mtk_ddp_comp *comp = mtk_crtc_get_comp(crtc, 0, 0);
+	struct mtk_plane_comp_state *comp_state;
+	struct mtk_drm_private *priv = mtk_crtc->base.dev->dev_private;
+#ifdef CONFIG_MTK_DISPLAY_CMDQ
+	unsigned int v = crtc->state->adjusted_mode.vdisplay;
+	unsigned int h = crtc->state->adjusted_mode.hdisplay;
+#endif
+	struct cmdq_pkt *cmdq_handle = state->cmdq_handle;
+	struct cmdq_pkt_buffer *cmdq_buf = &(mtk_crtc->gce_obj.buf);
+	unsigned int last_fence, cur_fence, sub;
+	dma_addr_t addr;
+
+	if (!comp) {
+		DDPINFO("%s invalid comp\n", __func__);
+		return;
+	}
+
+	if (priv == NULL) {
+		DDPINFO("%s+ priv is NULL\n", __func__);
+		return;
+	}
+
+	DDPINFO("%s+ plane_id:%d, comp_id:%d, comp_id:%d\n", __func__,
+		plane->index, comp->id, plane_state->comp_state.comp_id);
+
+	if (plane_state->pending.enable) {
+		if (mtk_crtc->is_dual_pipe) {
+			comp = mtk_crtc_get_plane_comp(crtc, plane_state);
+			if (comp != NULL)
+				mtk_crtc_dual_layer_config(mtk_crtc, comp, plane_index,
+						plane_state, cmdq_handle);
+		} else {
+			comp = mtk_crtc_get_plane_comp(crtc, plane_state);
+			if (comp != NULL)
+				mtk_ddp_comp_layer_config(comp, plane_index, plane_state,
+						  cmdq_handle);
+		}
+#ifdef CONFIG_MTK_DISPLAY_CMDQ
+		mtk_wb_atomic_commit(mtk_crtc, v, h, state->cmdq_handle);
+#else
+		mtk_wb_atomic_commit(mtk_crtc);
+#endif
+	} else {
+		comp_state = &(plane_state->comp_state);
+
+		if (comp_state->comp_id) {
+			if (mtk_crtc->is_dual_pipe) {
+				unsigned int comp_id;
+
+				comp_id = dual_pipe_comp_mapping(comp_state->comp_id);
+				comp = priv->ddp_comp[comp_id];
+				/* disable right pipe's layer */
+				mtk_ddp_comp_layer_off(comp, comp_state->lye_id,
+						comp_state->ext_lye_id, cmdq_handle);
+				DDPINFO("disable layer dual comp_id:%d\n", comp->id);
+			}
+			comp = mtk_crtc_get_plane_comp(crtc, plane_state);
+			mtk_ddp_comp_layer_off(comp, comp_state->lye_id,
+					comp_state->ext_lye_id, cmdq_handle);
+		} else {
+			struct mtk_plane_state *state =
+				to_mtk_plane_state(plane->state);
+
+			/* for the case do not contain crtc info, we assume this plane assign to
+			 * first component of display path
+			 */
+			if (!state->crtc && comp) {
+				if (mtk_crtc->is_dual_pipe) {
+					struct mtk_ddp_comp *comp_r;
+					unsigned int comp_r_id;
+
+					comp_r_id = dual_pipe_comp_mapping(comp->id);
+					comp_r = priv->ddp_comp[comp_r_id];
+					mtk_ddp_comp_layer_off(comp_r, plane->index,
+							0, cmdq_handle);
+					mtk_ddp_comp_layer_off(comp, plane->index, 0, cmdq_handle);
+				} else {
+					mtk_ddp_comp_layer_off(comp, plane->index, 0, cmdq_handle);
+				}
+			}
+		}
+	}
+
+	last_fence = *(unsigned int *)(cmdq_buf->va_base +
+				       DISP_SLOT_CUR_CONFIG_FENCE(plane_index));
+	cur_fence = plane_state->pending.prop_val[PLANE_PROP_NEXT_BUFF_IDX];
+
+	addr = cmdq_buf->pa_base + DISP_SLOT_CUR_CONFIG_FENCE(plane_index);
+	if (cur_fence != -1 && cur_fence > last_fence)
+		cmdq_pkt_write(cmdq_handle, mtk_crtc->gce_obj.base, addr,
+			       cur_fence, ~0);
+
+	if (plane_state->pending.enable &&
+	    plane_state->pending.format != DRM_FORMAT_C8)
+		sub = 1;
+	else
+		sub = 0;
+	addr = cmdq_buf->pa_base + DISP_SLOT_SUBTRACTOR_WHEN_FREE(plane_index);
+	cmdq_pkt_write(cmdq_handle, mtk_crtc->gce_obj.base, addr, sub, ~0);
+
+	DDPINFO("%s-\n", __func__);
+}
 
 void mtk_drm_crtc_plane_update(struct drm_crtc *crtc, struct drm_plane *plane,
 			       struct mtk_plane_state *plane_state)

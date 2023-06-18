@@ -42,6 +42,7 @@
 #define COMMON_NODE_DEVNAME    "common_node_dev"
 enum node_idx{
 	GESTURE,
+	FINGER,
 //	SUPERTORCH,
 /*
   new item ,add here
@@ -50,6 +51,7 @@ enum node_idx{
 };
 static char *func_node_name[] ={
 	[GESTURE]  = "GESTURE" ,
+	[FINGER]  = "FINGER" ,
 //	[SUPERTORCH]  = "Supertorch" ,
 /*
   new item ,add here
@@ -95,6 +97,30 @@ err:
 }
 static DEVICE_ATTR(supertorch, S_IRUGO|S_IWUSR,supertorch_show, supertorch_store);
 */
+
+static ssize_t finger_show(struct device *dev,struct device_attribute*attr, char *buf)
+{
+    int count;
+    count = sprintf(buf, "Node Func: %s, state = %s\n",local_common_node->node_array[FINGER].name,local_common_node->node_array[FINGER].state?"On":"Off");
+    return count;
+}
+ 
+static ssize_t finger_store(struct device *dev,struct device_attribute *attr, const char *buf, size_t count)
+{
+    int error;
+	unsigned int temp;
+    error = kstrtouint(buf, 10, &temp);
+	if(error < 0)
+		goto err;
+	if(local_common_node->node_array[FINGER].set){
+		local_common_node->node_array[FINGER].state = temp;
+		local_common_node->node_array[FINGER].set(temp);
+	}else
+		printk("node func %s is null!! \r\n",local_common_node->node_array[FINGER].name);
+err:
+	return count;
+}
+
 static ssize_t gesture_show(struct device *dev,struct device_attribute*attr, char *buf)
 {
     int count;
@@ -118,9 +144,11 @@ err:
 	return count;
 }
 static DEVICE_ATTR(gesture, S_IRUGO|S_IWUSR, gesture_show, gesture_store);
+static DEVICE_ATTR(finger, S_IRUGO|S_IWUSR, finger_show, finger_store);
 
 static const struct attribute *common_node_event_attr[] = {
         &dev_attr_gesture.attr,
+		&dev_attr_finger.attr,
 	//	&dev_attr_supertorch.attr,
 /*
   new item ,add here

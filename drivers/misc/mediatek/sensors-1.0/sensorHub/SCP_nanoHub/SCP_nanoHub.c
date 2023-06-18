@@ -2240,7 +2240,16 @@ int sensor_set_cmd_to_hub(uint8_t sensorType,
 	}
 	return err;
 }
-
+#if defined(CONFIG_MTK_SAR_HUB)
+/* prize add by liaoxingen for plug usb/accdet sar cali start */
+void sar_sensor_calibration_to_hub(void)                                                                                                                                                                                                                                      
+{
+    printk("sar_sensor_calibration_to_hub");
+    sensor_calibration_to_hub(ID_SAR);
+}
+EXPORT_SYMBOL(sar_sensor_calibration_to_hub);
+/* prize add by liaoxingen for plug usb/accdet sar cali end */
+#endif
 /* begin, prize-lifenfen-20181126, add for sensorhub hardware info */
 #ifdef CONFIG_SENSORHUB_PRIZE_HARDWARE_INFO
 int sensorHub_get_hardware_info(int sensor, struct sensor_hardware_info_t *deviceinfo)

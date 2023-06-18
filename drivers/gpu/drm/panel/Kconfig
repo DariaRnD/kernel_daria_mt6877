@@ -83,7 +83,7 @@ config DRM_PANEL_IT6113
 	  It provides a MIPI DSI interface to the host
 	  and connect it to panel
 
-config DRM_PANEL_NT36532_DSI_VDO_BOE
+config DRM_PANEL_NT36532_DSI_VDO_TIANMA
         tristate "nt36532 dphy vdo panel"
         depends on OF
         depends on DRM_MIPI_DSI

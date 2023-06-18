@@ -20,6 +20,7 @@ void set_OIS_ENABLE(int enable);
 void set_OIS_Standby(void);
 void set_OIS_degbug(void);
 int set_OIS_Mode(int mode);
+void set_OIS_flip_mirror(int flip);
 // prize add by zhuzhengjiang end
 
 /* fw_update_item */

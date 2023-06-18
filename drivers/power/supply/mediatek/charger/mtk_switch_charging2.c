@@ -276,17 +276,17 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 		    && info->chr_type == STANDARD_HOST)
 			chr_err("USBIF & STAND_HOST skip current check\n");
 		else {
-			/*prize added by lvyuanchuan,X9-489,start*/
+			/*prize added by lvyuanchuan,X9LAVA-475,start*/
 			if (info->sw_jeita.sm == TEMP_T1_TO_T2) {
-				pdata->charging_current_limit = 950000;
+				pdata->charging_current_limit = 2000000;
 			}else if (info->sw_jeita.sm == TEMP_T2_TO_T3) {
 				pdata->charging_current_limit = 2000000;
 			}else if (info->sw_jeita.sm == TEMP_T3_TO_T4) {
-				pdata->charging_current_limit = 1300000;
+				pdata->charging_current_limit = 1600000;
 			}else if(info->sw_jeita.sm == TEMP_BELOW_T0 || info->sw_jeita.sm == TEMP_ABOVE_T4){
 				pdata->charging_current_limit = 0;
 			}
-			/*prize added by lvyuanchuan,X9-489,end*/
+			/*prize added by lvyuanchuan,X9LAVA-475,end*/
 		}
 	}
 

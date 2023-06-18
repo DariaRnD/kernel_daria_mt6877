@@ -12,6 +12,12 @@
 /*******************************************************************************
 *prize add, order:0-9-a-z ,start
 *******************************************************************************/
+/* DRV added by chenjiaxi, start */
+extern struct LCM_DRIVER ili7807d_fhd_dsi_vdo_boe_drip_incell_lcm_drv;
+extern struct LCM_DRIVER ili7807d_fhd_dsi_vdo_auo_drip_incell_lcm_drv;
+extern struct LCM_DRIVER r61322_fhd_dsi_vdo_sharp_lcm_drv;
+extern struct LCM_DRIVER hx8399_fhd_dsi_vdo_boe_lcm_drv;
+/* DRV added by chenjiaxi, end */
 extern struct LCM_DRIVER er68577_hdplus_dsi_vdo_mz_panda_lcm_drv; //prize add by tangcong 20220318 ---start
 /*prize add by liuxuhui---20220620---start*/
 extern struct LCM_DRIVER icnl9911c_hdplus_dsi_vdo_lcm_drv;
@@ -24,6 +30,7 @@ extern struct LCM_DRIVER gc9503cv_fwvgap_dsi_vdo_tn_lcm_drv;
 extern struct LCM_DRIVER gc9503np_fwvgap_dsi_vdo_tn_lcm_drv;
 extern struct LCM_DRIVER gc9503cv_fwvgap_dsi_vdo_tn_new_lcm_drv;
 //prize add by xuejian lcd 20220620 end
+extern struct LCM_DRIVER gc9503np_fwvgap_dsi_vdo_ctc545_qcg_lcm_drv;
 /*prize-add lcm-tangcong-20210719-start*/
 extern struct LCM_DRIVER nv3051d_hdplus_dsi_vdo_hq_lcm_drv;
 /*prize-add lcm-tangcong-20210719-end*/
@@ -37,6 +44,24 @@ extern struct LCM_DRIVER ili9881c_hd_dsi_vdo_cmi_ata_lcm_drv;
 //dvr add by huangyu ILI9882N 20230213 start  
 extern struct LCM_DRIVER ili9882n_hdp_dsi_vdo_incell_truly_lcm_drv;
 //dvr add by huangyu ILI9882N 20230213 end  
+//dvr add by wangwei1 ILI9882Q 20230424 start
+extern struct LCM_DRIVER ili9882q_hdp_dsi_vdo_incell_huaying_lcm_drv;
+//dvr add by wangwei1 ILI9882Q 20230424 end
+//dvr add by wangwei1 hx8394f 20230506 start
+extern struct LCM_DRIVER hx8394f_hdp_dsi_vdo_oncell_txd_lcm_drv;
+//dvr add by wangwei1 hx8394f 20230506 end
+//drv add by wangwei1 for gms board detect 20230509 end
+extern struct LCM_DRIVER ili9882q_hdp_dsi_vdo_incell_huaying_gms_lcm_drv;
+//drv add by wangwei1 for gms board detect 20230509 end
+//dvr add by wangwei1 st7123 20230425 start
+extern struct LCM_DRIVER st7123_hdp_dsi_vdo_incell_dzx_lcm_drv;
+//dvr add by wangwei1 st7123 20230425 end
+//dvr add by wangwei1 TXD ILI9882Q 20230505 start
+extern struct LCM_DRIVER ili9882q_hdp_dsi_vdo_incell_txd_lcm_drv;
+//dvr add by wangwei1 TXD ILI9882Q 20230505 end
+//dvr add by wangwei1 TXD ILI9882Q 20230519 start
+extern struct LCM_DRIVER ili9882q_hdp_dsi_vdo_incell_txd_gms_lcm_drv;
+//dvr add by wangwei1 TXD ILI9882Q 20230519 end
 /* prize added by chenjiaxi, lcm, 20190401-start */
 extern struct LCM_DRIVER nt35532_hd720_dsi_vdo_xm_lcm_drv;
 /* prize added by chenjiaxi, lcm, 20190401-end */

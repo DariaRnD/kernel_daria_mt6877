@@ -34,13 +34,26 @@ int pe50_stop(void)
 
 	if (pe5->online == true) {
 		chr_err("%s\n", __func__);
-		enable_vbus_ovp(true);
+		/*prize modified by lvyuanchuan,X9LAVA-1274*/
+		//enable_vbus_ovp(true);
 		pe5->online = false;
 		pe5->state = PE50_INIT;
 	}
 
 	return 0;
 }
+/*Prize add by lvyuanchuan,X9LAVA-1250,20230608 start*/
+int pe50_init_state(void)
+{
+	if (pe5 == NULL)
+		return -ENODEV;
+	chr_err("%s pe5 online:%d, state:%d\n", __func__,pe5->online,pe5->state);
+	if (pe5->online == true) {
+		pe5->state = PE50_INIT;
+	}
+	return 0;
+}
+/*Prize add by lvyuanchuan,X9LAVA-1250,20230608 end*/
 
 bool pe50_is_ready(void)
 {
@@ -91,7 +104,10 @@ int pe50_set_charging_current_limit(struct charger_manager *pinfo)
 	}
 	chg1_data = &pinfo->chg1_data;
 	if(chg1_data){
-		/*0~3A*/
+		/*
+			abcct_lcmoff 1.2~3A
+			abcct 600~3A
+		*/
 		return chg1_data->thermal_charging_current_limit;
 	}
 	return -1;
@@ -105,7 +121,7 @@ int pe50_set_charging_current_limit(struct charger_manager *pinfo)
 #define THERMAL_INPUT_LIMIT_AT_SCREENON		(3000000)
 #define THERMAL_INPUT_LIMIT_AT_VIDEO			(1500000)
 #define THERMAL_INPUT_LIMIT_AT_SCREENOFF	(6000000)
-#define THERMAL_INPUT_ITEM								(1000000)
+#define THERMAL_INPUT_ITEM								(1200000)
 #define HW_TEMP_LEVEL_1	(35)
 #define HW_TEMP_LEVEL_2	(40)
 #define HW_TEMP_LEVEL_3	(45)
@@ -169,7 +185,7 @@ int pe50_run(void)
 				/*prize added by lvyuanchuan,X9-489,start*/
 				thr_lmt = pe50_set_charging_current_limit(pinfo);
 				if(charger_is_screenBlank()){
-		
+
 					if(pinfo->chg_scenario == 0){
 						/*screen on*/
 						if(temp <= HW_TEMP_LEVEL_1){
@@ -196,16 +212,17 @@ int pe50_run(void)
 					dvchg_data->thermal_input_current_limit = thr_lmt_new;
 				}else{
 					/* screen off*/
-					thr_lmt_new = (thr_lmt != -1)? thr_lmt*3 : -1;
+					thr_lmt_new = (thr_lmt != -1)? thr_lmt*2 : -1;
+					if((thr_lmt_new != -1) && (thr_lmt_new < THERMAL_INPUT_ITEM*2)){
+						thr_lmt_new = THERMAL_INPUT_ITEM*2;
+					}
 					dvchg_data->thermal_input_current_limit = thr_lmt_new;
 				}
 				/*prize added by lvyuanchuan,X9-489,end*/
 				mtk_pe50_thermal_throttling(pinfo,dvchg_data->thermal_input_current_limit);
 			}
-			/*cv setting at ita_lmt*/	
-			//if (pinfo->enable_sw_jeita)
-			//	mtk_pe50_set_jeita_vbat_cv(pinfo, pinfo->sw_jeita.cv);
-			chr_info("[PE50]temp: %d ,thermal_input_current_limit:%d ,thr_lmt:%d, sw_jeita.cv:%d,chg_scenario:%d\n",temp,
+			/*cv setting at ita_lmt*/
+			chr_info("[PE50]temp: %d ,thr_lmt:%d,thermal_input_current_limit:%d , sw_jeita.cv:%d,chg_scenario:%d\n",temp,
 								thr_lmt,dvchg_data->thermal_input_current_limit,pinfo->sw_jeita.cv,pinfo->chg_scenario);
 		}
 		break;

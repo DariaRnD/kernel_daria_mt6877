@@ -41,7 +41,7 @@
 #include "synaptics_tcm_core.h"
 /* prize add by kangdong 20210910 start */
 #if defined(CONFIG_PRIZE_HARDWARE_INFO)
-#include "../../../misc/mediatek/prize/hardware_info/hardware_info.h"
+#include "../../../misc/mediatek/hardware_info/hardware_info.h"
 extern struct hardware_info current_tp_info;
 #endif
 /* prize add by kangdong 20210910 end */

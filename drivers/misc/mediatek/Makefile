@@ -224,6 +224,7 @@ obj-$(CONFIG_PRIZE_BASE_CHARGER) += base_charger/
 
 #prize add by wangyongsheng 20210104------start
 obj-$(CONFIG_PRIZE_UHF) += uhf/
+obj-$(CONFIG_PRIZE_SCAN_HANDSHANK_KEY) += scan_key/
 #prize add by wangyongsheng 20210104------end
 
 obj-$(CONFIG_MTK_FPSGO_V3) += fpsgo_cus/

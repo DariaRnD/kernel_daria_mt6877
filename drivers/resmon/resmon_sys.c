@@ -441,11 +441,11 @@ static ssize_t show_system_io_mem_stat(struct device *dev,
 			write_bytes = acct.write_bytes;
 #endif
 
-			if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
-			        oom_adj = OOM_ADJUST_MAX;
-			else  /*modify for oom_score_adj->oom_adj round*/
-			        oom_adj = ((task->signal->oom_score_adj * -OOM_DISABLE * 10)/OOM_SCORE_ADJ_MAX+5)/10;
-
+			//if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
+			        //oom_adj = OOM_ADJUST_MAX;
+			//else  /*modify for oom_score_adj->oom_adj round*/
+			        //oom_adj = ((task->signal->oom_score_adj * -OOM_DISABLE * 10)/OOM_SCORE_ADJ_MAX+5)/10;
+			oom_adj = task->signal->oom_score_adj;
             //resmon_error("resmon pid:%d, utime:%llu, stime:%llu,mm:%llu, read:%llu,write:%llu,oom_adj:%d",task->pid,nsec_to_clock_t(utime),nsec_to_clock_t(stime),mm_size,read_bytes,write_bytes,oom_adj);
 			pos += sprintf(buf + pos, "%d ", task->pid);
 			pos += sprintf(buf + pos, "%llu ", (long long unsigned int)nsec_to_clock_t(utime) );

@@ -102,11 +102,11 @@ static int show_resmon_stat(struct seq_file *m, void *v)
 			write_bytes = acct.write_bytes;
 #endif
 
-			if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
-			        oom_adj = OOM_ADJUST_MAX;
-			else  /*modify for oom_score_adj->oom_adj round*/
-			        oom_adj = ((task->signal->oom_score_adj * -OOM_DISABLE * 10)/OOM_SCORE_ADJ_MAX+5)/10;
-
+			//if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
+			        //oom_adj = OOM_ADJUST_MAX;
+			//else  /*modify for oom_score_adj->oom_adj round*/
+			        //oom_adj = ((task->signal->oom_score_adj * -OOM_DISABLE * 10)/OOM_SCORE_ADJ_MAX+5)/10;
+			oom_adj = task->signal->oom_score_adj;
 			seq_printf(m, "%d ", task->pid);
 			seq_put_decimal_ull(m, " ", (long long unsigned int)nsec_to_clock_t(utime));
 			seq_put_decimal_ull(m, " ", (long long unsigned int)nsec_to_clock_t(stime));

@@ -583,6 +583,7 @@ EXPORT_SYMBOL(mtk_spk_recv_ipi_buf_from_dsp);
 
 static const struct i2c_device_id mtk_spk_i2c_id[] = {
 	{ "tfa98xx", 0},
+	{ "aw883xx_smartpa", 0},
 	{ "speaker_amp", 0},
 	{}
 };
@@ -591,6 +592,7 @@ MODULE_DEVICE_TABLE(i2c, mtk_spk_i2c_id);
 #ifdef CONFIG_OF
 static const struct of_device_id mtk_spk_match_table[] = {
 	{.compatible = "nxp,tfa98xx",},
+	{.compatible = "awinic,aw883xx_smartpa",},
 	{.compatible = "mediatek,speaker_amp",},
 	{},
 };

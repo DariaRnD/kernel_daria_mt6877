@@ -11,6 +11,7 @@
 #include <linux/platform_device.h>
 #include <linux/slab.h>
 #include <mt-plat/v1/prop_chgalgo_class.h>
+#include <mt-plat/v1/mtk_battery.h>
 #include <tcpm.h>
 
 #define PCA_PPS_TA_VERSION	"2.0.0_G"
@@ -352,7 +353,7 @@ static int pca_pps_authenticate_ta(struct prop_chgalgo_device *pca,
 			goto out;
 		if (info->desc->force_cv)
 			data->support_cc = false;
-			
+
 		mt_set_pps_pwrlmt_support(true);
 		PCA_INFO("select cap_idx[%d], power limit[%d,%dW]\n",
 			 apdo_idx, data->pwr_lmt, data->pdp);

@@ -67,6 +67,14 @@
 
 #include "mtk_charger_intf.h"
 #include "mtk_charger_init.h"
+#include "mtk_pe50.h"
+
+/*prize added by durunshen,X9LAVA-1147,start*/
+#if IS_ENABLED(CONFIG_PRIZE_HARDWARE_INFO)
+#include "../../../misc/mediatek/hardware_info/hardware_info.h"
+extern struct hardware_info current_cp_info;
+#endif
+/*prize added by durunshen,X9LAVA-1147,end*/
 
 static struct charger_manager *pinfo;
 static struct list_head consumer_head = LIST_HEAD_INIT(consumer_head);
@@ -334,6 +342,9 @@ int charger_manager_enable_high_voltage_charging(
 		info->enable_hv_charging);
 	/*PRIZE:Modified ,X9-761,20230111 start*/
 	if (mtk_pe50_get_is_connect(info) && !info->enable_hv_charging){
+		/*status :cmd disable charging,but bat temp is normal*/
+		/*Prize add by lvyuanchuan,X9LAVA-1250,20230608*/
+		pe50_init_state();
 		mtk_pe50_stop_algo(info, true);
 	}
 	/*PRIZE:Modified ,X9-761,20230111 end*/
@@ -749,9 +760,11 @@ static dev_t charger_devno;
 
 static int is_slave_charger_exist(void)
 {
-	if (get_charger_by_name("secondary_chg") == NULL)
-		return 0;
-	return 1;
+/*prize added by durunshen,X9LAVA-1147,start*/
+	if (!strcmp(current_cp_info.id, "0x5151"))
+		return 1;
+	return 0;
+/*prize added by durunshen,X9LAVA-1147,end*/
 }
 
 static long charger_ftm_ioctl(struct file *file, unsigned int cmd,

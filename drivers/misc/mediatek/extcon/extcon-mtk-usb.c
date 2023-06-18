@@ -684,6 +684,7 @@ static int mtk_usb_extcon_probe(struct platform_device *pdev)
 		return PTR_ERR(extcon->vbus);
 	}
 
+#ifndef CONFIG_CHRDET_VBUS_DETECTION
 	if (!of_property_read_u32(dev->of_node, "vbus-voltage",
 					&extcon->vbus_vol))
 		dev_info(dev, "vbus-voltage=%d", extcon->vbus_vol);
@@ -691,6 +692,7 @@ static int mtk_usb_extcon_probe(struct platform_device *pdev)
 	if (!of_property_read_u32(dev->of_node, "vbus-current",
 					&extcon->vbus_cur))
 		dev_info(dev, "vbus-current=%d", extcon->vbus_cur);
+#endif
 
 	extcon->bypss_typec_sink =
 		of_property_read_bool(dev->of_node,

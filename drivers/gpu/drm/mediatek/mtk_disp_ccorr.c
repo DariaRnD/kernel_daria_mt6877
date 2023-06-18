@@ -1294,6 +1294,7 @@ static void mtk_ccorr_unprepare(struct mtk_ddp_comp *comp)
 	atomic_set(&g_ccorr_is_clock_on[index_of_ccorr(comp->id)], 0);
 	spin_unlock_irqrestore(&g_ccorr_clock_lock, flags);
 	DDPDBG("%s @ %d......... spin_unlock_irqrestore ", __func__, __LINE__);
+	atomic_set(&g_ccorr_get_irq, 1); /* prize modified by gongtaitao for color temperature setting does not work 20230404 */
 	wake_up_interruptible(&g_ccorr_get_irq_wq); // wake up who's waiting isr
 	ddp_ccorr_backup(comp);
 	mtk_ddp_comp_clk_unprepare(comp);

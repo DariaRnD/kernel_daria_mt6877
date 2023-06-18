@@ -11,6 +11,32 @@
 
 /* Legacy design */
 struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
+#if defined(GC08A3REAR_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_GC08A3REAR_MIPI_RAW,
+		{
+			{RST, Vol_Low, 1},
+			{DOVDD, Vol_1800, 0},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1200, 1},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 1},
+		},
+	},
+#endif
+#if defined(HI1339OFILM_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_HI1339OFILM_MIPI_RAW,
+		{
+			{RST, Vol_Low, 1},
+			{DOVDD, Vol_1800, 0},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1100, 1},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 2}
+		},
+	},
+#endif
 #if defined(IMX766_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX766_MIPI_RAW,
@@ -686,6 +712,21 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
+#if defined(OV8856GMS_MIPI_RAW)
+	{SENSOR_DRVNAME_OV8856GMS_MIPI_RAW,
+		{
+			{SensorMCLK, Vol_High, 0},
+			{DOVDD, Vol_1800, 0},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1200, 0},
+			{AFVDD, Vol_2800, 2},
+			{PDN, Vol_Low, 0},
+			{PDN, Vol_High, 0},
+			{RST, Vol_Low, 0},
+			{RST, Vol_High, 5},
+		},
+	},
+#endif
 #if defined(S5K2X8_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_S5K2X8_MIPI_RAW,
@@ -1012,10 +1053,29 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		SENSOR_DRVNAME_IMX686_MIPI_RAW,
 		{
 			{RST, Vol_Low, 1},
+			{PDN, Vol_Low, 1},
 			{AVDD, Vol_2900, 0},
 		/*in alph.dts file, pin avdd controls two gpio pins*/
 			/*{AVDD_1, Vol_1800, 0},*/
 			{DVDD, Vol_1100, 0},
+			{AVDD, Vol_2800, 0},
+			{DOVDD, Vol_1800, 1},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 1},
+			{PDN, Vol_High, 1},
+		},
+	},
+#endif
+#if defined(IMX686GMS_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_IMX686GMS_MIPI_RAW,
+		{
+			{RST, Vol_Low, 1},
+			{AVDD, Vol_2900, 0},
+		/*in alph.dts file, pin avdd controls two gpio pins*/
+			/*{AVDD_1, Vol_1800, 0},*/
+			{DVDD, Vol_1100, 0},
+			{AVDD, Vol_2800, 0},
 			{DOVDD, Vol_1800, 1},
 			{SensorMCLK, Vol_High, 1},
 			{RST, Vol_High, 1}

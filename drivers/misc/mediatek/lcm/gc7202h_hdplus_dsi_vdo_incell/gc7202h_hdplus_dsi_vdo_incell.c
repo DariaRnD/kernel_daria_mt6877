@@ -421,7 +421,7 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 {REGFLAG_DELAY,120,{}},
 {0x29,1,{0x00}},
 {0xFE,3,{0x66,0x99,0x55}},
-{REGFLAG_DELAY,20,{}},
+{REGFLAG_DELAY,10,{}},
 
 {REGFLAG_END_OF_TABLE, 0x00, {}},
 };
@@ -574,22 +574,48 @@ static void lcm_resume_power(void)
 	//SET_RESET_PIN(0);
 	//display_bias_enable();
 }
-
+static int gcore_lcm_status=0;  /* lcm 0: normal, 1 suspend -> init, 2 reset -> tp download fw done */
+int gc7202h_lcm_status(void)
+{
+  printk("%s gcore_lcm_status=%d",__func__,gcore_lcm_status);
+  return gcore_lcm_status; /* 0 run, 1 suspend, 2 just reset */
+}
+EXPORT_SYMBOL(gc7202h_lcm_status);
+void gc7202h_lcm_stset(int status)
+{
+	gcore_lcm_status = status;
+    printk("%s gcore_lcm_status=%d",__func__,gcore_lcm_status);
+}
+EXPORT_SYMBOL(gc7202h_lcm_stset);
 static void lcm_init(void)
 {
+    printk("%s gcore_lcm_status=%d",__func__,gcore_lcm_status);
+
 	display_ldo18_enable(1);
 	display_bias_enable_v(6000);
 	MDELAY(10);
-
+	
+	gcore_lcm_status=2;
+/* galaxycore FAE requires reset 4 times, this IC needs to be reset more fully start */
     mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
-	//SET_RESET_PIN(1);
-	MDELAY(10);
+	MDELAY(5);
 	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 0);
-	//SET_RESET_PIN(0);
-	MDELAY(10);
+	MDELAY(5);
 	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
-	//SET_RESET_PIN(1);
-	MDELAY(50);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 0);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 0);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 0);
+	MDELAY(5);
+	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
+	MDELAY(30);
+/* galaxycore FAE requires reset 4 times, this IC needs to be reset more fully end */
 
 	push_table(lcm_initialization_setting, sizeof(lcm_initialization_setting) / sizeof(struct LCM_setting_table), 1);
 }
@@ -599,10 +625,12 @@ static void lcm_suspend(void)
 	push_table(lcm_deep_sleep_mode_in_setting, sizeof(lcm_deep_sleep_mode_in_setting) / sizeof(struct LCM_setting_table), 1);
     mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
 	//SET_RESET_PIN(1);
-    MDELAY(50);
+    MDELAY(10);
 	display_bias_disable();
-	MDELAY(50);
+	MDELAY(10);
 	display_ldo18_enable(0);
+    printk("%s gcore_lcm_status=%d",__func__,gcore_lcm_status);
+    gcore_lcm_status=1;
 }
 
 static void lcm_resume(void)
@@ -632,13 +660,13 @@ static unsigned int lcm_compare_id(void)
 
     mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
 	//SET_RESET_PIN(1);
-	MDELAY(10);
+	MDELAY(5);
 	mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 0);
 	//SET_RESET_PIN(0);
-	MDELAY(10);
+	MDELAY(5);
    mt_dsi_pinctrl_set(LCM_RESET_PIN_NO, 1);
 	//SET_RESET_PIN(1);
-	MDELAY(50);
+	MDELAY(30);
 
 	push_table(switch_table, sizeof(switch_table) / sizeof(struct LCM_setting_table), 1);
 
@@ -662,7 +690,7 @@ static unsigned int lcm_compare_id(void)
 static unsigned int lcm_ata_check(unsigned char *buffer)
 {
 #ifndef BUILD_LK
-#if 1
+#if 0
 	unsigned int ret = 0;
 	unsigned int x0 = FRAME_WIDTH / 4;
 	unsigned int x1 = FRAME_WIDTH * 3 / 4;
@@ -705,9 +733,25 @@ static unsigned int lcm_ata_check(unsigned char *buffer)
 	else
 		ret = 0;
 
+
+	printk("%s ret= %x\n", __func__, ret);
 	return ret;
 #endif
-	return 1;
+    unsigned char read_buf[2];
+    unsigned int array[16];
+
+	array[0] = 0x00023700;	/* read id return two byte,version and id */
+	dsi_set_cmdq(array, 1, 1); 
+
+	read_reg_v2(0xDA, read_buf, 1); 
+
+	printk("%s,[galaxycore]get gecore_lcm_id is 0x%x.\n", __func__,read_buf[0]);
+
+	if (read_buf[0] == 0x20)
+	 return 1;
+	else
+	 return 0;
+
 #else
 	return 0;
 #endif

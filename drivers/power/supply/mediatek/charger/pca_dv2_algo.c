@@ -280,8 +280,8 @@ static struct dv2_algo_desc algo_desc_defval = {
 	.tta_level_def = {0, 0, 0, 0, 75, 75, 75, 75, 75},
 	.tta_curlmt = {0, 0, 0, 0, 0, 0, 0, 0, -1},
 	.tta_recovery_area = 3,
-	.tbat_level_def = {	0,  5,    10,   15,  35, 40, 45, 60,   65},
-	.tbat_curlmt = 		{-1, 2425, 2200, 1625, 0,  0,  0,  2425, -1},
+	.tbat_level_def = {	0,  5,    10,   15,  35, 42, 46, 55,   65},
+	.tbat_curlmt = 		{-1, 2425, 2200, 1625, 1,  1000,  1000,  2425, -1},
 	.tbat_recovery_area = 3,
 	.tdvchg_level_def = {0, 0, 0, 5, 25, 90, 90, 90, 90},
 	.tdvchg_curlmt = {-1, -1, -1, 0, 0, 0, 0, 0, -1},
@@ -901,10 +901,8 @@ static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
 	/*prize add by lvyuanchuan for ibusocp event,20221128 start*/
 	u32 ibat_cv[5] = {4080,4180,4350,4450,4480};
 	u32 ibat_lmt[5] = {0,750,1250,1500,1850};
-#if 0
-	u32 ibat_cv[5] = {4150,4250,4350,4450,4480};
-	__dv2_get_adc(info, PCA_ADCCHAN_VBAT, &vbat);
-#endif
+	int tbat_curlmt_scp[9] = {-1, 2425, 1100, 800, 0,  500,  500,  2425, -1};
+
 	vbat = battery_get_bat_voltage();
 	/*prize add by lvyuanchuan for ibusocp event,20221128 end*/
 	for(i=0;i<5;i++){
@@ -921,41 +919,58 @@ static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
 	/*tried_dual_dvchg*/
 	/*prize add by lvyuanchuan for ibusocp event,20221128 start*/
 	if (data->tried_dual_dvchg) {
-		ita = min(ita, data->ita_lmt - (2 * desc->tta_curlmt[data->tta_level]));
-		if(desc->tbat_curlmt[data->tbat_level] == 1){
-			ita = min(ita, data->ita_lmt);
+		if(data->is_dvchg_en[DV2_DVCHG_SLAVE]){
+			/*not using*/
+			ita = min(ita, data->ita_lmt - (2 * desc->tta_curlmt[data->tta_level]));
+			/*base on battery temp*/
+			if(desc->tbat_curlmt[data->tbat_level] == 1){
+				ita = min(ita, data->ita_lmt);
+			}else{
+				ita = min(ita, data->ita_lmt - (2 * desc->tbat_curlmt[data->tbat_level]));
+			}
+			/*not using*/
+			ita = min(ita, data->ita_lmt - (2 * desc->tdvchg_curlmt[data->tdvchg_level]));
 		}else{
-			ita = min(ita, data->ita_lmt - (2 * desc->tbat_curlmt[data->tbat_level]));
+			/*not using*/
+			ita = min(ita, data->ita_lmt - desc->tta_curlmt[data->tta_level]);
+			/*base on battery temp*/
+			if(desc->tbat_curlmt[data->tbat_level] == 1){
+				ita = min(ita, data->ita_lmt);
+			}else{
+				ita = min(ita, data->ita_lmt - desc->tbat_curlmt[data->tbat_level]);
+			}
+			/*not using*/
+			ita = min(ita, data->ita_lmt - desc->tdvchg_curlmt[data->tdvchg_level]);
 		}
-		ita = min(ita, data->ita_lmt - (2 * desc->tdvchg_curlmt[data->tdvchg_level]));
 		/*base on battery cv*/
-		if(index != -1 && ((data->tbat_level > DV2_THERMAL_COOL)&& (data->tbat_level <= DV2_THERMAL_VERY_WARM))){
+		if(index != -1 && ((data->tbat_level >= DV2_THERMAL_COLD)&& (data->tbat_level <= DV2_THERMAL_VERY_WARM))){
 				/*CC_CV*/
 				if(data->is_dvchg_en[DV2_DVCHG_SLAVE]){
 					ita = min(ita, data->ita_lmt - (2 * ibat_lmt[index]));
 				}else{
-					ita = min(ita, data->ita_lmt - ibat_lmt[index]);
+					ita = min(ita, data->ita_lmt - tbat_curlmt_scp[index]);
 				}
 		}
 	} else {
+		/*not using*/
 		ita = min(ita, data->ita_lmt - desc->tta_curlmt[data->tta_level]);
 		if(desc->tbat_curlmt[data->tbat_level] == 1){
 			ita = min(ita, data->ita_lmt);
 		}else{
-			ita = min(ita, data->ita_lmt - desc->tbat_curlmt[data->tbat_level]);
+			ita = min(ita, data->ita_lmt - tbat_curlmt_scp[data->tbat_level]);
 		}
+		/*not using*/
 		ita = min(ita, data->ita_lmt - desc->tdvchg_curlmt[data->tdvchg_level]);
 		/*base on battery cv*/
-		if(index != -1 && ((data->tbat_level > DV2_THERMAL_COOL)&& (data->tbat_level <= DV2_THERMAL_VERY_WARM)))
+		if(index != -1 && ((data->tbat_level >= DV2_THERMAL_COLD)&& (data->tbat_level <= DV2_THERMAL_VERY_WARM)))
 			ita = min(ita, data->ita_lmt - (ibat_lmt[index]));
 	}
 	/*prize add by lvyuanchuan for ibusocp event,20221128 end*/
-	PCA_INFO("pump_chg_en(%d,%d),[vbat,tbat_level,tried_dual_dvchg],ita(org,tta,tbat,tdvchg,prlmt,throt,batlmt)=[%d,%d,%d],%d(%d,%d,%d,%d,%d,%d,%d)\n",
+	PCA_INFO("Pump_chg_en(%d,%d),[vbat,tbat_level,tried_dual_dvchg],ita(org,tta,tbat,tdvchg,prlmt,throt,batlmt_cv,batlmt_jeita)=[%d,%d,%d],%d(%d,%d,%d,%d,%d,%d,%d)\n",
 		 data->is_dvchg_en[DV2_DVCHG_MASTER],data->is_dvchg_en[DV2_DVCHG_SLAVE],vbat ,data->tbat_level,data->tried_dual_dvchg,
-		 ita, data->ita_lmt, desc->tta_curlmt[data->tta_level],
-		 desc->tbat_curlmt[data->tbat_level],
-		 desc->tdvchg_curlmt[data->tdvchg_level], data->ita_pwr_lmt,
-		 data->thermal_throttling,ibat_lmt[index]);
+		 ita, data->ita_lmt,
+		 desc->tta_curlmt[data->tta_level],desc->tbat_curlmt[data->tbat_level],desc->tdvchg_curlmt[data->tdvchg_level],
+		 data->ita_pwr_lmt,data->thermal_throttling,ibat_lmt[index]);
 	mutex_unlock(&data->ext_lock);
 	return ita;
 }
@@ -1980,7 +1995,7 @@ static int __dv2_algo_cal_r_info_with_ta_cap(struct dv2_algo_info *info,
 			r_info.r_bat = precise_div(abs(r_info.vbat - data->zcv) * 1000,
 					   abs(r_info.ibat));
 		}
-	
+
 		if (r_info.r_bat > desc->ircmp_rbat || r_info.ibat == 0)
 			r_info.r_bat = desc->ircmp_rbat;
 		/*prize modified by lvyuanchuan ,X9-422,20221208 end*/
@@ -2835,7 +2850,7 @@ static int __dv2_algo_cc_cv_with_ta_cv(struct dv2_algo_info *info)
 	struct charger_consumer *chg_consumer = NULL;
 	struct charger_manager *chg_pinfo = NULL;
 	#define PPS_IEOC_CURR		 (850000)
-	
+
 	PCA_DBG("++\n");
 
 	chg_consumer = charger_manager_get_by_name(info->dev,"charger_port1");
@@ -2863,7 +2878,7 @@ static int __dv2_algo_cc_cv_with_ta_cv(struct dv2_algo_info *info)
 		sinfo.hardreset_ta = auth_data->support_meas_cap;
 		goto out;
 	}
-	
+
 	/*prize add by lvyuanchuan for Dynamically adjusting the item-cp current ,20221206 start*/
 	if (!data->is_dvchg_en[DV2_DVCHG_SLAVE]){
 		data->idvchg_term = desc->idvchg_term;
@@ -2886,7 +2901,7 @@ static int __dv2_algo_cc_cv_with_ta_cv(struct dv2_algo_info *info)
 			charger_dev_set_eoc_current(chg_pinfo->chg1_dev,PPS_IEOC_CURR);
 			chg_pinfo->finish_pe5 = true;
 		}
-		/*PRIZE:Modified by lvyuanchuan,X9-742 20230109 end*/	
+		/*PRIZE:Modified by lvyuanchuan,X9-742 20230109 end*/
 		PCA_INFO("Finish dv2 charging[%d]\n",data->idvchg_term);
 		goto out;
 	}
@@ -3410,7 +3425,7 @@ err:
 
 static bool __dv2_is_ta_rdy(struct dv2_algo_info *info)
 {
-	int ret, i;
+	int ret, i,fgPresent;
 	struct dv2_algo_desc *desc = info->desc;
 	struct dv2_algo_data *data = info->data;
 	struct prop_chgalgo_ta_auth_data *auth_data = &data->ta_auth_data;
@@ -3433,16 +3448,22 @@ static bool __dv2_is_ta_rdy(struct dv2_algo_info *info)
 				desc->support_ta[i], ret);
 			continue;
 		}
-
+ 		fgPresent = battery_is_present();
 		data->pca_ta = data->pca_ta_pool[i];
-		PCA_INFO("%s,lmt(%d,%dW),step(%d,%d),cc=%d,cap=%d,status=%d\n",
+		PCA_INFO("%s,lmt(%d,%dW),step(%d,%d),cc=%d,cap=%d,status=%d,present(%d)\n",
 			 desc->support_ta[i], auth_data->pwr_lmt,
 			 auth_data->pdp, auth_data->vta_step,
 			 auth_data->ita_step, auth_data->support_cc,
 			 auth_data->support_meas_cap,
-			 auth_data->support_status);
-		data->ta_ready = true;
-		return true;
+			 auth_data->support_status,
+			 fgPresent);
+		if(fgPresent){
+			data->ta_ready = true;
+			return true;
+		}else{
+			data->ta_ready = false;
+			return false;
+		}
 	}
 	return false;
 }
@@ -4269,6 +4290,7 @@ static int dv2_parse_dt(struct dv2_algo_info *info)
 	if (ret < 0)
 		return ret;
 	desc->support_ta_cnt = ret;
+	PCA_ERR("support_ta_cnt :%d\n",ret);
 	desc->support_ta = devm_kzalloc(info->dev, ret * sizeof(char *),
 					GFP_KERNEL);
 	if (!desc->support_ta)

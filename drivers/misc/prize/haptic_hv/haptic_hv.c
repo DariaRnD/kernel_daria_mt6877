@@ -2085,6 +2085,11 @@ static ssize_t f0_show(struct device *dev, struct device_attribute *attr,
 	aw_haptic->func->upload_lra(aw_haptic, AW_WRITE_ZERO);
 	aw_haptic->func->get_f0(aw_haptic);
 	mutex_unlock(&aw_haptic->lock);
+	/*prize modify for linear vibrator cali begin*/
+	f0_cali(aw_haptic);
+	aw_info("f0_show f0_cali f0 = %d f0_cali_data = 0x%02X\n", aw_haptic->f0,
+		aw_haptic->f0, aw_haptic->f0_cali_data);
+	/*prize modify for linear vibrator cali end*/
 	len += snprintf(buf + len, PAGE_SIZE - len, "f0 = %d\n", aw_haptic->f0);
 	return len;
 }
@@ -3444,11 +3449,13 @@ static int haptic_get_cmdline_cali_data(void)
 	if(ptr == NULL)
 	{
 		printk("%s get null saved_command_line = %s\n", __func__, saved_command_line);
-		return -1;
+		/*prize modify for linear vibrator cali begin*/
+		return 0;
+		/*prize modify for linear vibrator cali end*/
 	}
 	printk("%s ptr = %s\n", __func__, ptr);
 	ptr += strlen("androidboot.aw_cali_data=");
-	cali_data = simple_strtol(ptr, NULL, 10);
+	cali_data = simple_strtol(ptr, NULL, 16);
 	printk("%s cali_data = %d\n", __func__, cali_data);
 	return cali_data;
 }
@@ -3485,10 +3492,10 @@ static void haptic_init(struct aw_haptic *aw_haptic)
 	aw_haptic->ram_vbat_comp = AW_RAM_VBAT_COMP_ENABLE;
 	/* f0 calibration */   //prize add wangfei
 	//f0_cali(aw_haptic);
-	//prize add for haptic cali begin
+	/*prize modify for linear vibrator cali begin*/
 	aw_haptic->f0_cali_data = haptic_get_cmdline_cali_data();
 	printk("%s f0_cali_data = %d\n", __func__, aw_haptic->f0_cali_data);
-	//prize add for haptic cali end
+	/*prize modify for linear vibrator cali end*/
 	mutex_unlock(&aw_haptic->lock);
 }
 

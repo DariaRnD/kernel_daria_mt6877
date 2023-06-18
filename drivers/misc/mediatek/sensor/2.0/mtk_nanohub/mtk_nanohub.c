@@ -172,13 +172,14 @@ static uint8_t scp_chre_ready;
 static struct mtk_nanohub_device *mtk_nanohub_dev;
 
 /* prize modified by gongtaitao for send lcm param to light sensor 20221031 start */
-#define SEND_LCM_PARAM_CYCLC 500 //1000 /* prize modified by gongtaitao for X9-530 */
+#define SEND_LCM_PARAM_CYCLC 440 //500 //1000 /* prize modified by gongtaitao for X9-530 */
 #define LCD_NAME "lcd-backlight"
 #define MAX_RETRY_TIMES 5
 #define ALS_ENABLE_FLAG 0X88
 #define DELAY_MSECONDS 200
 extern unsigned short led_level_disp_get(char *name);
 extern void get_pix_rgb(int16_t *R, int16_t *G, int16_t *B);
+extern void reset_pix_rgb(void);
 /* prize modified by gongtaitao for send lcm param to light sensor 20221031 end */
 
 static int mtk_nanohub_send_timestamp_to_hub(void);
@@ -1134,6 +1135,10 @@ int mtk_nanohub_enable_to_hub(uint8_t sensor_id, int enabledisable)
 	sensor_state[sensor_type].enable = enabledisable;
 
 /* prize modified by gongtaitao for send lcm param to light sensor 20221207 start */
+	if (enabledisable == 0 && sensor_type == SENSOR_TYPE_LIGHT) {
+		reset_pix_rgb();
+	}
+
 	if (enabledisable == 1 && sensor_type == SENSOR_TYPE_LIGHT) {
 		len = sizeof(struct ConfigCmd) + sizeof(int16_t) * 4;
 	} else {
@@ -3027,7 +3032,7 @@ static int aw_sar_ps_get_state(struct power_supply *psy, bool *present)
 		pr_err("sar %s psy get property failed\n", psy->desc->name);
 		return retval;
 	}
-	if (strcmp(psy->desc->name, "usb") == 0) {
+	if (strcmp(psy->desc->name, "usb") == 0 || strcmp(psy->desc->name, "charger")) {
 		*present = (pval.intval) ? true : false;
 		pr_info("sar %s is %s\n", psy->desc->name,
 				(*present) ? "present" : "not present");
@@ -3288,6 +3293,7 @@ static int mtk_nanohub_remove(struct platform_device *pdev)
 	del_timer_sync(&device->sync_time_timer);
 /* prize modified by gongtaitao for send lcm param to light sensor 20221031 start */
 	del_timer_sync(&device->send_lcm_param_timer);
+	reset_pix_rgb();
 /* prize modified by gongtaitao for send lcm param to light sensor 20221031 end */
 	hf_manager_destroy(device->hf_dev.manager);
 	unregister_pm_notifier(&mtk_nanohub_pm_notifier_func);

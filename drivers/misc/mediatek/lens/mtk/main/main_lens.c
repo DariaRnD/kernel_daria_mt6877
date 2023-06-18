@@ -126,6 +126,8 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 FP5510E2AF_Release, FP5510E2AF_GetFileName, NULL},
 	{1, AFDRV_DW9718AF, DW9718AF_SetI2Cclient, DW9718AF_Ioctl,
 	 DW9718AF_Release, DW9718AF_GetFileName, NULL},
+	{1, AFDRV_DW9718GAF, DW9718GAF_SetI2Cclient, DW9718GAF_Ioctl,
+	 DW9718GAF_Release, DW9718GAF_GetFileName, NULL},
 	{1, AFDRV_GT9764AF, GT9764AF_SetI2Cclient, GT9764AF_Ioctl,
 	GT9764AF_Release, GT9764AF_GetFileName, NULL},
 	{1, AFDRV_LC898212AF, LC898212AF_SetI2Cclient, LC898212AF_Ioctl,
@@ -171,6 +173,8 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 CN3927ELCAF_Release, CN3927ELCAF_GetFileName, NULL},
 	{1, AFDRV_GT9764BAF, GT9764BAF_SetI2Cclient, GT9764BAF_Ioctl,
 	GT9764BAF_Release, GT9764BAF_GetFileName, NULL},
+	{1, AFDRV_AW86017CSRAF, AW86017CSRAF_SetI2Cclient, AW86017CSRAF_Ioctl,
+	 AW86017CSRAF_Release, AW86017CSRAF_GetFileName, NULL},
 /*prize add by zhuzhengjiang for lens:zc535 20220110 end*/
 };
 
