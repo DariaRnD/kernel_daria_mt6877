@@ -586,6 +586,9 @@ source "drivers/misc/mediatek/uhf/Kconfig"
 #drv add by lipengpeng 20230417 start
 source "drivers/misc/mediatek/scan_key/Kconfig"
 #drv add by lipengpeng 20230417 end
+#add by hejiang 20220411 --start
+source "drivers/misc/mediatek/switch_battery/Kconfig"
+#add by hejiang 20220411 --end 
 
 menu "Misc"
 source "drivers/misc/mediatek/ext_gic/Kconfig"
@@ -594,3 +597,11 @@ source "drivers/misc/mediatek/timer/Kconfig"
 endmenu # Misc
 
 source "drivers/misc/mediatek/aw862xx_haptic/Kconfig"
+
+#add  by drv 20230612 for CAMPING_LIGHT
+config PRIZE_CAMPING_LIGHT
+       tristate "PRIZE_CAMPING_LIGHT Driver"
+       depends on MTK_PWM
+       default n
+       help
+         PRIZE_CAMPING_LIGHT.

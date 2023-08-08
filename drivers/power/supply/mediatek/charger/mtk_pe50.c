@@ -42,18 +42,6 @@ int pe50_stop(void)
 
 	return 0;
 }
-/*Prize add by lvyuanchuan,X9LAVA-1250,20230608 start*/
-int pe50_init_state(void)
-{
-	if (pe5 == NULL)
-		return -ENODEV;
-	chr_err("%s pe5 online:%d, state:%d\n", __func__,pe5->online,pe5->state);
-	if (pe5->online == true) {
-		pe5->state = PE50_INIT;
-	}
-	return 0;
-}
-/*Prize add by lvyuanchuan,X9LAVA-1250,20230608 end*/
 
 bool pe50_is_ready(void)
 {
@@ -174,10 +162,13 @@ int pe50_run(void)
 				Reaching the fast charge cut-off current is the real stop
 			*/
 			if(!running){
-				if(pinfo->finish_pe5)
+				if(pinfo->finish_pe5){
 					return PE50_ALGO_DONE;
-				else
+				}else{
+					pe5->state = PE50_INIT;
+					chr_info("[PE50] rerun!!! \n");
 					return PE50_ALGO_RERUN;
+				}
 			}
 			/*prize add by lvyuanchuan for master-slave charger switching ,20230203 end*/
 			dvchg_data = &pinfo->dvchg1_data;

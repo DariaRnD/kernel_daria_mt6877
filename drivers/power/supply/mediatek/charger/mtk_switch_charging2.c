@@ -466,8 +466,9 @@ static int mtk_switch_charging_plug_out(struct charger_manager *info)
 	info->leave_pe4 = false;
 	info->leave_pdc = false;
 	info->is_pdc_run = false;
+	info->finish_pe5 = false;
 	mt_set_pps_pwrlmt_support(false);
-	
+
 	return 0;
 }
 
@@ -707,7 +708,6 @@ static int select_pdc_charging_current_limit(struct charger_manager *info)
 			pdata->input_current_limit =
 					pdata->thermal_input_current_limit;
 	}
-
 	ret = charger_dev_get_min_charging_current(info->chg1_dev, &ichg1_min);
 	if (ret != -ENOTSUPP && pdata->charging_current_limit < ichg1_min)
 		pdata->charging_current_limit = 0;
@@ -859,6 +859,8 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 		}else{
 			chr_err("enter PE5.0 => CC [%d][%d] \n",info->enable_hv_charging,info->sw_jeita.sm);
 		}
+	}else{
+			chr_err("enter PE5.0 => exit [%d][%d] \n",info->enable_hv_charging,info->sw_jeita.sm);
 	}
 
 	if (info->enable_pe_4 &&
@@ -883,8 +885,8 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 			return 1;
 		}
 	}
-
-	if (pdc_is_ready() &&
+	/*Prize add by lvyuanchuan,X9LAVA-1286,charing not sucessfully,20230620*/
+	if ((info->chr_type != STANDARD_HOST) && pdc_is_ready() &&
 		!info->leave_pdc) {
 		if (info->enable_hv_charging == true) {
 			chr_err("enter PDC!\n");
@@ -1006,8 +1008,8 @@ static int mtk_switch_check_charging_safety(struct charger_manager *info)
 		__func__,temp,hwTemp,info->sw_jeita.sm, swchgalg->state,info->sw_jeita.error_cp_recovery_flag,info->enable_hv_charging);
 		return 0;	
 	}
-	/*Temp:10~45*/
-	if (info->enable_sw_jeita && mtk_is_TA_support_pd_pps(info)) {
+	/*Temp:10~45 && cmd_discharging == false*/
+	if (info->enable_sw_jeita && mtk_is_TA_support_pd_pps(info) && (!info->cmd_discharging)) {
 		if(info->sw_jeita.sm == TEMP_T2_TO_T3){
 			info->sw_jeita.error_cp_recovery_flag = true;
 			/*prize added by lvyuanchuan,X9-796,20230113*/
@@ -1026,8 +1028,8 @@ static int mtk_switch_check_charging_safety(struct charger_manager *info)
 			mtk_pe50_stop_algo(info, true);
 		}
 	}
-	chr_err("[%s][temp]:(%d,%d),sm:[%d] ,state:[%d] ,error_cp_recovery_flag[%d],enable_hv_charging[%d]\n",
-	__func__,temp,hwTemp,info->sw_jeita.sm, swchgalg->state,info->sw_jeita.error_cp_recovery_flag,info->enable_hv_charging);
+	chr_err("[%s][temp]:(%d,%d),sm:[%d] ,state:[%d] ,error_cp_recovery_flag[%d],enable_hv_charging[%d],cmd_discharging[%d]\n",
+	__func__,temp,hwTemp,info->sw_jeita.sm, swchgalg->state,info->sw_jeita.error_cp_recovery_flag,info->enable_hv_charging,info->cmd_discharging);
 	return 0;
 }
 /*prize added by lvyuanchuan,X9-867,20230201 end*/

@@ -784,11 +784,13 @@ static int sitronix_ts_probe(struct platform_device *pdev)
 #endif	//ST_SKIP_HDL_IN_PROBE
 #else
 //drv add by wangwei1 for fw upgrade when power on 20230531 start
+#if 0
 	ret = sitronix_do_upgrade();
 	if (ret < 0) {
 		sterr("%s: Failed to Host Download\n", __func__);
 		return -EINVAL;
 	}
+#endif
 //drv add by wangwei1 for fw upgrade when power on 20230531 end
 	sitronix_ts_reset_device(gts);
 #endif /* SITRONIX_HDL_IN_PROBE */

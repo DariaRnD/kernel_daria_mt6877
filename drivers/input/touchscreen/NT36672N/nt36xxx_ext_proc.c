@@ -19,6 +19,8 @@
 
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
+#include <linux/platform_device.h>
+#include <linux/module.h>
 
 #include "nt36xxx.h"
 
@@ -834,6 +836,241 @@ static const struct file_operations nvt_pen_diff_fops = {
 };
 #endif
 
+int32_t nvt_set_glove_switch(uint8_t glove_switch)
+{
+	uint8_t buf[8] = {0};
+	int32_t ret = 0;
+
+	NVT_LOG("++\n");
+	NVT_LOG("set glove switch: %d\n", glove_switch);
+
+	msleep(35);
+
+	//---set xdata index to EVENT BUF ADDR---
+	ret = nvt_set_page(I2C_FW_Address, ts->mmap->EVENT_BUF_ADDR | EVENT_MAP_HOST_CMD);
+	if (ret < 0) {
+		NVT_ERR("Set event buffer index fail!\n");
+		goto nvt_set_glove_switch_out;
+	}
+
+	buf[0] = EVENT_MAP_HOST_CMD;
+	if (glove_switch == 0) {
+		// glove off
+		buf[1] = 0xB2;
+	} else if (glove_switch == 1) {
+		// glove on
+		buf[1] = 0xB1;
+	} else {
+		NVT_ERR("Invalid value! glove_switch = %d\n", glove_switch);
+		ret = -EINVAL;
+		goto nvt_set_glove_switch_out;
+	}
+	ret = CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
+	if (ret < 0) {
+		NVT_ERR("Write glove switch command fail!\n");
+		goto nvt_set_glove_switch_out;
+	}
+
+nvt_set_glove_switch_out:
+	NVT_LOG("--\n");
+	return ret;
+}
+
+int32_t nvt_get_glove_switch(uint8_t *glove_switch)
+{
+	uint8_t buf[8] = {0};
+	int32_t ret = 0;
+
+	NVT_LOG("++\n");
+
+	msleep(35);
+
+	//---set xdata index to EVENT BUF ADDR---
+	ret = nvt_set_page(I2C_FW_Address, ts->mmap->EVENT_BUF_ADDR | 0x5C);
+	if (ret < 0) {
+		NVT_ERR("Set event buffer index fail!\n");
+		goto nvt_get_glove_switch_out;
+	}
+
+	buf[0] = 0x5C;
+	buf[1] = 0x00;
+	ret = CTP_I2C_READ(ts->client, I2C_FW_Address, buf, 2);
+	if (ret < 0) {
+		NVT_ERR("Read charger switch status fail!\n");
+		goto nvt_get_glove_switch_out;
+	}
+
+	*glove_switch = ((buf[1] >> 1) & 0x01);
+	//ts->glove_enable = *glove_switch;
+	NVT_LOG("charger_switch = %d\n", *glove_switch);
+
+nvt_get_glove_switch_out:
+	NVT_LOG("--\n");
+	return ret;
+}
+
+
+/* DRV added by wangwei1, gesture mode, 20260625 start */
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GESTURE_MODE)
+bool nt36672_is_gesture_wakeup_enabled(void)
+{
+	if (((IS_ERR(ts)) ? 1 : 0) || (ts == NULL) ) {
+		NVT_ERR("Failed to allocate ts memory, ts is NULL.\n");
+		return false;
+	}
+
+    return ts->gesture_status;
+}
+EXPORT_SYMBOL_GPL(nt36672_is_gesture_wakeup_enabled);
+
+void nt36672_gesture_mode_enter(void)
+{
+	uint8_t buf[4] = {0};
+
+	NVT_LOG("nt36672_gesture_mode_enter\n");
+
+	if (((IS_ERR(ts)) ? 1 : 0) || (ts == NULL) ) {
+		NVT_ERR("Failed to allocate ts memory, ts is NULL.\n");
+		return;
+	}
+
+	//---write command to enter "wakeup gesture mode"---
+	buf[0] = EVENT_MAP_HOST_CMD;
+	buf[1] = 0x13;
+	CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
+
+	return;
+}
+EXPORT_SYMBOL_GPL(nt36672_gesture_mode_enter);
+
+static ssize_t nt36672_gesture_show(
+    struct device *dev, struct device_attribute *attr, char *buf)
+{
+    int count = 0;
+
+    count = snprintf(buf, PAGE_SIZE, "Gesture Mode:%s\n",
+                      ts->gesture_status ? "On" : "Off");
+
+    return count;
+}
+
+static ssize_t nt36672_gesture_store(
+    struct device *dev,
+    struct device_attribute *attr, const char *buf, size_t count)
+{
+
+    if (buf[0] == '1') {
+        NVT_LOG("enable gesture");
+		ts->gesture_status = true;
+		NVT_LOG("gesture = %d\n", ts->gesture_status);
+    } else if (buf[0] == '0') {
+        NVT_LOG("disable gesture");
+		ts->gesture_status = false;
+		NVT_LOG("gesture = %d\n", ts->gesture_status);
+    }
+
+    return count;
+}
+#endif
+
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GLOVE_MODE)
+static ssize_t nt36672_glove_mode_show(
+    struct device *dev, struct device_attribute *attr, char *buf)
+{
+    int count = 0;
+
+    count = snprintf(buf, PAGE_SIZE, "Glove Mode:%s\n",
+                     ts->glove_status ? "On" : "Off");
+
+    return count;
+}
+
+static ssize_t nt36672_glove_mode_store(
+    struct device *dev,
+    struct device_attribute *attr, const char *buf, size_t count)
+{
+    int ret = 0;
+
+
+    if (buf[0] == '1') {
+        NVT_LOG("enable glove mode");
+		ts->glove_status = true;
+		nvt_set_glove_switch(1);
+		NVT_LOG("glove = %d\n", ts->glove_status);
+    } else if (buf[0] == '0') {
+        NVT_LOG("disable glove mode");
+		ts->glove_status = false;
+		nvt_set_glove_switch(0);
+		NVT_LOG("glove = %d\n", ts->glove_status);
+
+    }
+
+    return count;
+}
+#endif
+
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GESTURE_MODE)
+/* sysfs gesture node
+ *   read example: cat  nt36672_gesture_mode       ---read gesture mode
+ *   write example:echo 1 > nt36672_gesture_mode   --- write gesture mode to 1
+ *
+ */
+static DEVICE_ATTR(gesture, S_IRUGO | S_IWUSR, nt36672_gesture_show,
+                   nt36672_gesture_store);
+#endif
+
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GLOVE_MODE)
+/* sysfs glove node
+ * read example: cat nt36672_glove_mode        ---read  glove mode
+ * write example:echo 1 > nt36672_glove_mode   ---write glove mode to 01
+ */
+static DEVICE_ATTR(state, S_IRUGO | S_IWUSR,
+                   nt36672_glove_mode_show, nt36672_glove_mode_store);
+#endif
+
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GESTURE_MODE)
+int nt36672_gesture_sysfs_add(struct platform_device *pdev)
+{
+	int err = 0;
+    NVT_LOG("Add device attr groups, nt36672_gesture_sysfs_add\n");
+  
+	err = device_create_file(&pdev->dev, &dev_attr_gesture);
+	if (err) {
+        NVT_ERR("sys file creation failed\n");
+        return -ENODEV;
+	}
+	return 0;
+}
+
+static const struct of_device_id gesture_of_match[] = {
+	{.compatible = "mediatek,gesture",},
+	{},
+};
+MODULE_DEVICE_TABLE(of, gesture_of_match);
+
+static int gesture_probe(struct platform_device *pdev)
+{
+	platform_set_drvdata(pdev, ts);
+	nt36672_gesture_sysfs_add(pdev);
+	
+	return 0;
+}
+
+static struct platform_driver gesture_driver = {
+	.probe = gesture_probe,
+	.driver = {
+		.name = "common_node",
+		.of_match_table = gesture_of_match,
+	},
+};
+
+int nt36672_gesture_init(void)
+{
+	return platform_driver_register(&gesture_driver);
+}
+#endif
+/* DRV added by wangwei1, gesture mode, 20260625 end */
+
 /*******************************************************
 Description:
 	Novatek touchscreen extra function proc. file node
@@ -844,6 +1081,31 @@ return:
 *******************************************************/
 int32_t nvt_extra_proc_init(void)
 {
+	/* DRV added by wangwei1, glove mode, 20230626 start */
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GLOVE_MODE)
+	static struct kobject *sysfs_rootdir = NULL; 
+	struct kobject *drv_glove = NULL;
+	int err = 0;
+
+	if (!sysfs_rootdir) {
+		// this kobject is shared between modules, do not free it when error occur
+		sysfs_rootdir = kobject_create_and_add("prize", kernel_kobj);
+	}
+
+	if (!drv_glove)
+		drv_glove = kobject_create_and_add("smartcover", sysfs_rootdir);
+	
+	err = sysfs_create_link(drv_glove, &ts->client->dev.kobj, "common_node");
+	if (err) {
+		NVT_ERR("prize ilitek sysfs_create_link fail\n");
+		return -ENOMEM;
+	}
+	if (sysfs_create_file(&ts->client->dev.kobj, &dev_attr_state.attr)) {
+		return -ENOMEM;
+	}
+#endif
+	/* DRV added by wangwei1, glove mode, 20230626 end */
+
 	NVT_proc_fw_version_entry = proc_create(NVT_FW_VERSION, 0444, NULL,&nvt_fw_version_fops);
 	if (NVT_proc_fw_version_entry == NULL) {
 		NVT_ERR("create proc/%s Failed!\n", NVT_FW_VERSION);
@@ -885,6 +1147,12 @@ int32_t nvt_extra_proc_init(void)
 			NVT_LOG("create proc/%s Succeeded!\n", NVT_PEN_DIFF);
 		}
 	}
+
+	/* DRV added by wangwei1, gesture mode, start */
+#if defined(CONFIG_TOUCHSCREEN_NT36672_GESTURE_MODE)
+	nt36672_gesture_init();
+#endif
+	/* DRV added by wangwei1, gesture mode, end */
 
 	return 0;
 }

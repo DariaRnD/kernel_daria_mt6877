@@ -117,12 +117,12 @@ extern const uint16_t gesture_key_array[];
 #endif
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 0)
-#if IS_ENABLED(CONFIG_DRM_PANEL)
+#if IS_ENABLED(CONFIG_FB)
+#define NVT_FB_NOTIFY 1
+#elif IS_ENABLED(CONFIG_DRM_PANEL)
 #define NVT_DRM_PANEL_NOTIFY 1
 #elif IS_ENABLED(_MSM_DRM_NOTIFY_H_)
 #define NVT_MSM_DRM_NOTIFY 1
-#elif IS_ENABLED(CONFIG_FB)
-#define NVT_FB_NOTIFY 1
 #elif IS_ENABLED(CONFIG_HAS_EARLYSUSPEND)
 #define NVT_EARLYSUSPEND_NOTIFY 1
 #endif
@@ -182,6 +182,8 @@ struct nvt_ts_data {
 	uint32_t chip_ver_trim_addr;
 	uint32_t swrst_sif_addr;
 	uint32_t crc_err_flag_addr;
+	bool gesture_status;
+	bool glove_status;
 };
 
 #if NVT_TOUCH_PROC

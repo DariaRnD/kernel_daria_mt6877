@@ -301,12 +301,13 @@ static int battery_psy_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_CAPACITY:
 		/* 1 = META_BOOT, 4 = FACTORY_BOOT 5=ADVMETA_BOOT */
 		/* 6= ATE_factory_boot */
-		if (gm->bootmode == 1 || gm->bootmode == 4
-			|| gm->bootmode == 5 || gm->bootmode == 6) {
-			val->intval = 75;
-			break;
-		}
-
+	//drv huangjwu 20230616 for meta read cap start
+	//	if (gm->bootmode == 1 || gm->bootmode == 4
+	//		|| gm->bootmode == 5 || gm->bootmode == 6) {
+	//		val->intval = 75;
+	//		break;
+	//	}
+	//drv huangjwu 20230616 for meta read cap end
 		if (gm->fixed_uisoc != 0xffff)
 			val->intval = gm->fixed_uisoc;
 		else
@@ -3254,6 +3255,25 @@ int get_bat_id_voltage(void)
 EXPORT_SYMBOL(get_bat_id_voltage);
 #endif
 /*prize add by liuxuhui for bat---20220816---end*/
+/*prize add by liuxuhui for bat_det---20220729---start*/
+#ifdef CONFIG_SWITCH_BATTERY
+#include <linux/syscalls.h>
+static struct mtk_battery *prize_gm;
+int prize_det_battery_status(char level)
+{
+    bm_err("[%s] : begin\n", __func__);
+    if(level) {
+        // nothing
+    } else {
+        bm_err("[%s]restart fuelgauge pid:%d\n", __func__, prize_gm->fgd_pid);
+        kill_pid(find_vpid(prize_gm->fgd_pid), SIGKILL, 1);
+    }
+    bm_err("[%s] : end\n", __func__);
+    return 0;
+}
+EXPORT_SYMBOL(prize_det_battery_status);
+#endif
+/*prize add by liuxuhui for bat_det---20220729---end*/
 
 int battery_init(struct platform_device *pdev)
 {
@@ -3272,6 +3292,11 @@ int battery_init(struct platform_device *pdev)
 	gm->tmp_table = Fg_Temperature_Table;
 	gm->log_level = BMLOG_ERROR_LEVEL;
 	gm->sw_iavg_gap = 3000;
+/*prize add by liuxuhui for bat_det---20220729---start*/
+#ifdef CONFIG_SWITCH_BATTERY
+        prize_gm = gauge->gm;
+#endif
+/*prize add by liuxuhui for bat_det---20220729---end*/
 
 	init_waitqueue_head(&gm->wait_que);
 

@@ -21,7 +21,7 @@
 #define SEMI_TOUCH_GLOVE_OPEN                   1
 #define SEMI_TOUCH_APK_NODE_EN                  1
 #define SEMI_TOUCH_ONLINE_UPDATE_EN             1
-#define SEMI_TOUCH_BOOTUP_UPDATE_EN             1
+#define SEMI_TOUCH_BOOTUP_UPDATE_EN             0
 
 #define SEMI_TOUCH_DMA_TRANSFER                 0
 #define SEMI_TOUCH_IRQ_VAR_QUEUE                0

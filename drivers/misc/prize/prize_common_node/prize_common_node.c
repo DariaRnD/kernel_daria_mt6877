@@ -43,6 +43,7 @@
 enum node_idx{
 	GESTURE,
 	FINGER,
+	HBMSTATE,
 //	SUPERTORCH,
 /*
   new item ,add here
@@ -52,6 +53,7 @@ enum node_idx{
 static char *func_node_name[] ={
 	[GESTURE]  = "GESTURE" ,
 	[FINGER]  = "FINGER" ,
+	[HBMSTATE] = "HBMSTATE",
 //	[SUPERTORCH]  = "Supertorch" ,
 /*
   new item ,add here
@@ -61,6 +63,7 @@ struct node_dev_info{
 	char  name[10];
 	unsigned char state;
 	void(*set)(unsigned char on_off);	
+	bool(*hbm_set)(void);
 };
 
 struct common_node{
@@ -143,12 +146,43 @@ static ssize_t gesture_store(struct device *dev,struct device_attribute *attr, c
 err:
 	return count;
 }
+static ssize_t hbmstate_show(struct device *dev,struct device_attribute*attr, char *buf)
+{
+    int count = 0;
+	if (local_common_node->node_array[HBMSTATE].hbm_set) {
+		count = sprintf(buf, "hbm_stat = %s\n",local_common_node->node_array[HBMSTATE].hbm_set()?"On":"Off");
+	} else {
+		count = sprintf(buf, "hbm_stat error\n");
+	}
+	//count = sprintf(buf, "hbm_stat = %s\n",g_ctx->state?"On":"Off");
+    return count;
+}
+ 
+static ssize_t hbmstate_store(struct device *dev,struct device_attribute *attr, const char *buf, size_t count)
+{
+	/*
+    int error;
+	unsigned int temp;
+    error = kstrtouint(buf, 10, &temp);
+	if(error < 0)
+		goto err;
+	if(local_common_node->node_array[HBMSTATE].set){
+		local_common_node->node_array[HBMSTATE].state = temp;
+		local_common_node->node_array[HBMSTATE].set(temp);
+	}else
+		printk("node func %s is null!! \r\n",local_common_node->node_array[HBMSTATE].name);
+err:
+*/
+	return count;
+}
 static DEVICE_ATTR(gesture, S_IRUGO|S_IWUSR, gesture_show, gesture_store);
 static DEVICE_ATTR(finger, S_IRUGO|S_IWUSR, finger_show, finger_store);
+static DEVICE_ATTR(hbmstate, S_IRUGO|S_IWUSR, hbmstate_show, hbmstate_store);
 
 static const struct attribute *common_node_event_attr[] = {
         &dev_attr_gesture.attr,
 		&dev_attr_finger.attr,
+		&dev_attr_hbmstate.attr,
 	//	&dev_attr_supertorch.attr,
 /*
   new item ,add here
@@ -173,6 +207,19 @@ void prize_common_node_register(char* name,void(*set)(unsigned char on_off))
 }
 EXPORT_SYMBOL(prize_common_node_register);
 
+void prize_common_node_show_register(char* name,bool(*hbm_set)(void))
+{
+	int i;
+	for(i = 0;i < MAX;i++)
+	{
+		if(strcmp(name,func_node_name[i]) == 0)
+		{
+			local_common_node->node_array[i].hbm_set = hbm_set;
+		}
+	}
+}
+EXPORT_SYMBOL(prize_common_node_show_register);
+
 static void common_node_array_init(void)
 {
 	int i;
@@ -181,6 +228,7 @@ static void common_node_array_init(void)
 		strcpy(local_common_node->node_array[i].name,func_node_name[i]);
 		local_common_node->node_array[i].state = 0;
 		local_common_node->node_array[i].set = NULL;
+		local_common_node->node_array[i].hbm_set = NULL;
 	}
 }
 static int common_node_probe(struct platform_device *pdev){

@@ -343,8 +343,6 @@ int charger_manager_enable_high_voltage_charging(
 	/*PRIZE:Modified ,X9-761,20230111 start*/
 	if (mtk_pe50_get_is_connect(info) && !info->enable_hv_charging){
 		/*status :cmd disable charging,but bat temp is normal*/
-		/*Prize add by lvyuanchuan,X9LAVA-1250,20230608*/
-		pe50_init_state();
 		mtk_pe50_stop_algo(info, true);
 	}
 	/*PRIZE:Modified ,X9-761,20230111 end*/
@@ -4139,6 +4137,7 @@ static int mtk_charger_probe(struct platform_device *pdev)
 	info->is_screenon = true;
 	info->chg_scenario = 0;
 	info->sw_jeita.error_recovery_flag = true;
+	info->cmd_discharging = false;
 
 	mtk_charger_init_timer(info);
 	info->is_pdc_run = false;

@@ -1108,6 +1108,8 @@ extern int display_bias_vpos_set(int mv);
 extern int display_bias_vneg_set(int mv);
 extern int display_ldo18_enable(int enable);
 extern int display_ldo28_enable(int enable);
+extern int display_fd_enable(int enable);
+extern int display_tpd_rst_enable(int enable);
 //prize added by huarui, add lcm driver, 20190327-end
 
 #endif /* __LCM_DRV_H__ */

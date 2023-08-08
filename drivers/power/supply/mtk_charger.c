@@ -1721,6 +1721,34 @@ static enum alarmtimer_restart
 	return ALARMTIMER_NORESTART;
 }
 
+//drv add by huangjiwu  2022093 start 
+#if defined(CONFIG_MTK_DUAL_CHARGER_SUPPORT) || defined(CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT)
+int is_chg2_exist = 0;
+EXPORT_SYMBOL_GPL(is_chg2_exist);
+///sys/devices/platform/charger/chg2_exist
+static ssize_t show_chg2_exist(struct device *dev, struct device_attribute *attr, char *buf)
+{
+  	int chg_cnt = 0;
+  
+  	if (is_chg2_exist){
+  		return sprintf(buf, "%u\n", is_chg2_exist);
+ 	}else{
+ 		if (get_charger_by_name("secondary_chg") != NULL){
+  			chg_cnt++;
+ 		}
+  		if (get_charger_by_name("primary_divider_chg") != NULL){
+  			chg_cnt++;
+  		}
+  		if (get_charger_by_name("secondary_divider_chg") != NULL){
+ 			chg_cnt++;
+  		}
+  	}
+  	return sprintf(buf, "%u\n", chg_cnt);
+
+}
+static DEVICE_ATTR(chg2_exist, 0664, show_chg2_exist, NULL);
+#endif
+//drv add by huangjiwu  2022093 end 
 static void mtk_charger_init_timer(struct mtk_charger *info)
 {
 	alarm_init(&info->charger_timer, ALARM_BOOTTIME,
@@ -1771,6 +1799,13 @@ static int mtk_charger_setup_files(struct platform_device *pdev)
 	ret = device_create_file(&(pdev->dev), &dev_attr_BatteryNotify);
 	if (ret)
 		goto _out;
+//drv add by huangjiwu  2022093 start 
+#if defined(CONFIG_MTK_DUAL_CHARGER_SUPPORT) || defined(CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT)
+	ret = device_create_file(&(pdev->dev), &dev_attr_chg2_exist);
+	if (ret)
+		goto _out;
+#endif
+//drv add by huangjiwu  2022093 end 
 
 	battery_dir = proc_mkdir("mtk_battery_cmd", NULL);
 	if (!battery_dir) {

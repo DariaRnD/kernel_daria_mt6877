@@ -29,13 +29,7 @@
 #define DEF_INI_REQUEST_PATH		"mp.ini"
 #define DEF_FW_REQUEST_PATH		"ILITEK_FW"
 static unsigned char CTPM_FW_DEF[] = {
-#ifdef CONFIG_TOUCHSCREEN_MTK_ILI9882Q
-	#include "ILI9882Q_GQ3112_LV_V0x00.0x00_AP_1_MP_1_20230420.ili"
-#elif CONFIG_TOUCHSCREEN_MTK_ILI9882Q_TXD
-	#include "ILI9882Q_P1_LV_V0x00.0x00_AP_1_MP_1_20230420.ili"
-#else
 	#include "FW_TDDI_TRUNK_FB.ili"
-#endif
 };
 
 #define CSOT_INI_NAME_PATH		"/sdcard/mp_csot.ini"

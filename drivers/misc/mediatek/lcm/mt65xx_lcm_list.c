@@ -84,6 +84,11 @@ struct LCM_DRIVER *lcm_driver_list[] = {
 	&gc9503cv_fwvgap_dsi_vdo_tn_new_lcm_drv,
 #endif
 //prize add by xuejian lcd 20220620 end
+//prize add by dengzhiyuan lcd 20230608 start
+#if defined(GC9503CV_FWVGAP_DSI_VDO_INNOLUX)
+	&gc9503cv_fwvgap_dsi_vdo_innolux_lcm_drv,
+#endif
+//prize add by dengzhiyuan lcd 20230608 end
 #if defined(GC9503NP_FWVGAP_DSI_VDO_CTC545_QCG)
 	&gc9503np_fwvgap_dsi_vdo_ctc545_qcg_lcm_drv,
 #endif
@@ -134,6 +139,16 @@ struct LCM_DRIVER *lcm_driver_list[] = {
         &ili9882q_hdp_dsi_vdo_incell_txd_gms_lcm_drv,
 #endif
 //dvr add by wangwei1 TXD ILI9882Q 20230519 end
+
+//dvr add by wangwei1 TRULY ILI9882Q 20230630 start
+#if defined(ILI9882N_HDP_DSI_VDO_TRULY6517_C5T)
+        &ili9882n_hdp_dsi_vdo_truly6517_c5t_lcm_drv,
+#endif
+
+#if defined(HX8399_FHDP_DSI_VDO_BOE_CW103P)
+        &hx8399_fhdp_dsi_vdo_boe_cw103p_lcm_drv,
+#endif
+//dvr add by wangwei1 TRULY ILI9882Q 20230630 end
 
 //prize-add-pengzhipeng-20200916-start
 #if defined(HX83112_FHDP_DSI_VDO_KN)

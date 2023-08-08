@@ -137,6 +137,9 @@ obj-$(CONFIG_TOUCHSCREEN_MTK_SYNAPTICS_I2C_RMI4)	+=  synaptics_i2c_rmi4/
 
 #prize add by zhaopengge 20211222 ----start
 obj-$(CONFIG_TOUCHSCREEN_FTS)	+=  focaltech_touch_spi/
+#drv  add by pengzhipeng 20230615 start 
+obj-$(CONFIG_TOUCHSCREEN_FTS_8057S)	+=  focaltech_ft8057s_v4_1/
+#drv  add by pengzhipeng 20230615 end
 obj-$(CONFIG_TOUCHSCREEN_FTS_8006AB)	+=  focaltech_8006s_ab_touch_spi/
 #prize add by zhaopengge 20211222 ----end
 #prize add by huangjiwu 20211222 ----start
@@ -171,6 +174,8 @@ obj-$(CONFIG_TOUCHSCREEN_MTK_ILI9882Q_TXD)	+= ILITEK_V3.0.9.0/
 obj-$(CONFIG_TOUCHSCREEN_MTK_ST7123)	+= sitronix_ts_v43.00.230509/
 #dvr add by wangwei1 ST7123 20230425 end 
 
+obj-$(CONFIG_TOUCHSCREEN_NT36xxx_HOSTDL_SPI) +=  NVT_Touch_HostDL/
+
 #prize add by lipengpeng 20220418 start 
 obj-$(CONFIG_TOUCHSCREEN_MTK_ILITEK)    +=  ILITEK_V2/
 obj-$(CONFIG_TOUCHSCREEN_MTK_HX83112A)    +=  hxchipset_hx83112/
@@ -191,5 +196,10 @@ obj-$(CONFIG_TOUCHSCREEN_SYNA_TCM2) += synaptics_tcm2/
 #dvr add by huangyu NT36672N 20230518 start
 obj-$(CONFIG_TOUCHSCREEN_MTK_NT36672N)		+= NT36672N/
 #dvr add by huangyu NT36672N 20230518 end
+obj-$(CONFIG_TOUCHSCREEN_GT9886_TOUCH)		+= GT9886_A201C/
+#prize add by zhaopengge 20201022 start
+obj-$(CONFIG_TOUCHSCREEN_MTK_GT9XX)	+= GT917S/
+obj-$(CONFIG_TOUCHSCREEN_MTK_GT5688)	+= GT5688/
+#prize add by zhaopengge 20201022 end
 TOUCH_LISTS := $(subst ",,$(CONFIG_TOUCHSCREEN_MTK_TOUCH))
 obj-y += $(foreach TOUCH,$(TOUCH_LISTS),$(TOUCH)/)

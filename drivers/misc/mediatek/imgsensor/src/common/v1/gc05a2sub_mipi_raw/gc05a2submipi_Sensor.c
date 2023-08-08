@@ -56,7 +56,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 
 static struct imgsensor_info_struct imgsensor_info = {
 	.sensor_id = GC05A2SUB_SENSOR_ID,
-	.checksum_value = 0xe5d32119,
+	.checksum_value = 0xe0f9f2e7, // 0xe5d32119,  /* prize modify to for checksum*/
 	.pre = {
 		.pclk = 224000000,
 		.linelength = 3616,

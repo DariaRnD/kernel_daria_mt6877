@@ -228,3 +228,9 @@ obj-$(CONFIG_PRIZE_SCAN_HANDSHANK_KEY) += scan_key/
 #prize add by wangyongsheng 20210104------end
 
 obj-$(CONFIG_MTK_FPSGO_V3) += fpsgo_cus/
+
+#add  by drv 20230612 for CAMPING_LIGHT
+obj-$(CONFIG_PRIZE_CAMPING_LIGHT) += camping_light/
+#add by hejiang 20220411 --start
+obj-$(CONFIG_SWITCH_BATTERY) += switch_battery/
+#add by hejiang 20220411 --end

@@ -2309,7 +2309,7 @@ int vcu_get_log(char *val, unsigned int val_len)
 	// append vcu log
 	len = strlen(val);
 	if (len < val_len)
-		snprintf(val + len, val_len - 1 - len,
+		SNPRINTF(val + len, val_len - 1 - len,
 			" %s %d", "-vcu_log", vcu_ptr->enable_vcu_dbg_log);
 
 	pr_info("[VCU] %s log_info: %s\n", __func__, val);

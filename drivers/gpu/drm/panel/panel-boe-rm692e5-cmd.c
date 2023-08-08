@@ -1261,6 +1261,13 @@ static int panel_ata_check(struct drm_panel *panel)
 #endif
 }
 
+extern void prize_common_node_show_register(char* name,bool(*hbm_set)(void));
+bool get_hbmstate(void)
+{
+	printk("%s g_ctx->hbm_stat:%d",__func__, g_ctx->hbm_stat);
+	return g_ctx->hbm_stat;
+}
+
 static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 	void *handle, unsigned int level)
 {
@@ -2049,6 +2056,7 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 	g_ctx = ctx;
 	ctx->hbm_en = false;
 	g_ctx->hbm_stat = false;
+	prize_common_node_show_register("HBMSTATE", &get_hbmstate);
 
 #if defined(CONFIG_PRIZE_HARDWARE_INFO)
     strcpy(current_lcm_info.chip,"rm692e5.cmd");

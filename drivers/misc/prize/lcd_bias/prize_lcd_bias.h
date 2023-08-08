@@ -8,3 +8,4 @@ extern int display_bias_vneg_set(int mv);
 extern int display_ldo18_enable(int enable);
 extern int display_ldo28_enable(int enable);
 extern int display_fd_enable(int enable);
+extern int display_tpd_rst_enable(int enable);

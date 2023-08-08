@@ -1186,6 +1186,17 @@ config TOUCHSCREEN_ST1232
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called st1232_ts.
+	 
+#prize-add-pengzhipeng-20191029-start
+config TOUCHSCREEN_NT36xxx_HOSTDL_SPI
+	bool "Novatek NT36xxx host download SPI driver"
+	default n
+	help
+	  Say Y here if you have a Novatek NT36xxx no flash touchscreen connected
+	  to your system by SPI bus.
+
+	  If unsure, say N.
+#prize-add-pengzhipeng-20191029-end
 
 config TOUCHSCREEN_STMFTS
 	tristate "STMicroelectronics STMFTS touchscreen"
@@ -1426,6 +1437,18 @@ config TOUCHSCREEN_MTK_ILI9882Q_TXD
 source "drivers/input/touchscreen/ILITEK_V3.0.9.0/Kconfig"
 #dvr add by wangwei1 TXD ILI9882Q 20230517 end
 
+config TOUCHSCREEN_MTK_GT5688
+        bool "GT5688 for Mediatek package"
+        default n
+        help
+          Say Y here if you have GT1151 touch panel.
+
+          If unsure, say N.
+
+          To compile this dirver as a module, choose M here: the
+          module will be called.
+source "drivers/input/touchscreen/GT5688/Kconfig"
+
 #prize Added glove mode control macro-tangcong-20210624-start	  
 config PRIZE_SMART_COVER_COMMON_NODE
 	bool "prize smart cover common node"
@@ -1528,6 +1551,9 @@ source "drivers/input/touchscreen/goodix_brl_GT9916/Kconfig"
 
 source "drivers/input/touchscreen/focaltech_8006s_ab_touch_spi/Kconfig"
 
+#drv  add by pengzhipeng 20230615 start 
+source "drivers/input/touchscreen/focaltech_ft8057s_v4_1/Kconfig"
+#drv  add by pengzhipeng 20230615 end
 #prize-add-hxchipset spi-pzp-20210713-start
 config TOUCHSCREEN_HIMAX_IC_HX83112_SPI
        bool "HIMAX chipset HX83112 function"
@@ -1581,6 +1607,8 @@ config TOUCHSCREEN_MTK_NT36672N
        bool "NT36672N chipset function"
 		help
 		This enables support for NT36672N CHIPSET.
+
+source "drivers/input/touchscreen/NT36672N/Kconfig"
 #dvr add by huangyu NT36672N 202305018 end 
 
 #dvr add by wangwei1 CHSC5432 20230512 end
@@ -1589,3 +1617,33 @@ config PRIZE_SMART_COVER_COMMON_NODE
 		help
 		This enables support glove for CHSC5432 CHIPSET.
 #dvr add by wangwei1 CHSC5432 20230512 end
+
+config TOUCHSCREEN_GT9886_TOUCH
+	tristate "Goodix I2C touchscreen"
+	depends on I2C
+	depends on GPIOLIB || COMPILE_TEST
+	help
+	  Say Y here if you have the Goodix touchscreen (such as one
+	  installed in Onda v975w tablets) connected to your
+	  system. It also supports 5-finger chip models, which can be
+	  found on ARM tablets, like Wexler TAB7200 and MSI Primo73.
+
+	  If unsure, say N.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called goodix.
+
+#prize add by zhaopengge 20201022 start
+config TOUCHSCREEN_MTK_GT9XX
+        bool "GT9XX for Mediatek package"
+        default n
+        help
+          Say Y here if you have GT1151 touch panel.
+
+          If unsure, say N.
+
+          To compile this dirver as a module, choose M here: the
+          module will be called.
+		  
+source "drivers/input/touchscreen/GT917S/Kconfig"
+#prize add by zhaopengge 20201022 end

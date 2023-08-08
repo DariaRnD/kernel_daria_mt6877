@@ -101,13 +101,17 @@
  *         from suspend.
  *         Set "disable" in default.
  */
-//#define RESET_ON_RESUME 
+#define RESET_ON_RESUME 
 
 /**
  * @brief ENABLE_WAKEUP_GESTURE
  *        Open if having wake-up gesture support.
  */
-//#define ENABLE_WAKEUP_GESTURE
+#define ENABLE_WAKEUP_GESTURE
+/*prize add fod function 20230218 start*/
+#define KEY_GESTURE KEY_F24
+#define KEY_GESTURE_UP KEY_F23
+/*prize add fod function 20230218 end*/
 
 /**
  * @brief REPORT_SWAP_XY
@@ -342,6 +346,10 @@ struct syna_tcm {
 	int pwr_state;
 	bool slept_in_early_suspend;
 	bool lpwg_enabled;
+	bool wakeup_click_enabled;   /* prize modify double tap gesture */
+	bool finger_fod_enabled;   /* prize modify fod gesture */
+	atomic_t fod_figer_state;     //prize 1-down   0-up
+	atomic_t now_system_status;   //0-suspend  1-resume
 	bool is_attn_redirecting;
 	unsigned char fb_ready;
 	bool is_connected;

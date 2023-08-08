@@ -91,7 +91,7 @@ static unsigned char custom_touch_format[] = {
 #ifdef STARTUP_REFLASH
 #define STARTUP_REFLASH_DELAY_TIME_MS (5000)
 
-#define FW_IMAGE_NAME "PR4183391_S3910P_K70PF5_BOE_SPI_FOR_Coosea_2023May26.img"
+#define FW_IMAGE_NAME "PR6777215_S3910P_bf085_boe_spi_15_20230703_240hz.img"
 #endif
 
 /**
@@ -381,6 +381,9 @@ static void syna_dev_report_input_events(struct syna_tcm *tcm)
 	unsigned int max_objects = tcm->tcm_dev->max_objects;
 	struct tcm_touch_data_blob *touch_data;
 	struct tcm_objects_data_blob *object_data;
+#ifdef ENABLE_WAKEUP_GESTURE
+	static unsigned int last_gesture_id; /* prize add fod function */
+#endif
 
 	if (input_dev == NULL)
 		return;
@@ -391,16 +394,56 @@ static void syna_dev_report_input_events(struct syna_tcm *tcm)
 	object_data = &tcm->tp_data.object_data[0];
 
 #ifdef ENABLE_WAKEUP_GESTURE
-	if ((tcm->pwr_state == LOW_PWR) && tcm->irq_wake) {
-		if (touch_data->gesture_id) {
-			LOGD("Gesture detected, id:%d\n",
-				touch_data->gesture_id);
+	LOGI("%d,%d,pwr_state:%d, irq_wake:%d,gesture_id=%d,last_gesture_id=%d\n",tcm->wakeup_click_enabled,tcm->finger_fod_enabled,tcm->pwr_state,tcm->irq_wake,touch_data->gesture_id,last_gesture_id);
+	if (((tcm->pwr_state == LOW_PWR)||(tcm->pwr_state == PWR_ON)) && tcm->irq_wake) {
+		switch (touch_data->gesture_id) {
+		case 1:
 
+			if(tcm->wakeup_click_enabled){
 			input_report_key(input_dev, KEY_WAKEUP, 1);
 			input_sync(input_dev);
 			input_report_key(input_dev, KEY_WAKEUP, 0);
+			input_sync(input_dev);	
+			LOGI("gesture_id double tap \n");
+			}
+			break;
+		case 128:     /* 0x80 */
+			atomic_set(&tcm->fod_figer_state, 1);
+			if((tcm->finger_fod_enabled) && (last_gesture_id != touch_data->gesture_id)) {
+			input_report_key(input_dev, KEY_GESTURE, 1);
 			input_sync(input_dev);
+			input_report_key(input_dev, KEY_GESTURE, 0);
+			input_sync(input_dev);
+			LOGI("gesture_id fod down \n");
+			}
+			break;
+		case 129:     /* 0x81 */
+			if(tcm->finger_fod_enabled) {
+				if(atomic_read(&tcm->now_system_status)) {
+				LOGI("now_system_status 1\n");
+				atomic_set(&tcm->fod_figer_state, 0);
+			input_report_key(input_dev, KEY_GESTURE_UP, 1);
+			input_sync(input_dev);
+			input_report_key(input_dev, KEY_GESTURE_UP, 0);
+			input_sync(input_dev);
+				tcm->hw_if->ops_hw_reset(tcm->hw_if);
+				} else if(!atomic_read(&tcm->now_system_status)) {
+				LOGI("now_system_status 0\n");
+				atomic_set(&tcm->fod_figer_state, 0);
+				input_report_key(input_dev, KEY_GESTURE_UP, 1);
+				input_sync(input_dev);
+				input_report_key(input_dev, KEY_GESTURE_UP, 0);
+				input_sync(input_dev);	
+				}
+			LOGI("gesture_id fod up \n");
+			}
+			break;
+		default:
+			LOGD("unknown gesture_id\n");
+			atomic_set(&tcm->fod_figer_state, 0);
+			break;
 		}
+		last_gesture_id = touch_data->gesture_id;
 	}
 #endif
 
@@ -537,6 +580,10 @@ static int syna_dev_create_input_device(struct syna_tcm *tcm)
 #ifdef ENABLE_WAKEUP_GESTURE
 	set_bit(KEY_WAKEUP, input_dev->keybit);
 	input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
+	set_bit(KEY_GESTURE, input_dev->keybit);
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE);
+	set_bit(KEY_GESTURE_UP, input_dev->keybit);	
+	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_UP);
 #endif
 
 	input_set_abs_params(input_dev,
@@ -1114,13 +1161,20 @@ static int syna_dev_resume(struct device *dev)
 #ifdef RESET_ON_RESUME
 	unsigned char status;
 #endif
-
+#ifdef ENABLE_WAKEUP_GESTURE	
+	atomic_set(&tcm->now_system_status, 1); //prize add, resume
+#endif	
 	/* exit directly if device isn't in suspend state */
 	if (tcm->pwr_state == PWR_ON)
 		return 0;
 
 	LOGI("Prepare to resume device\n");
 
+#ifdef ENABLE_WAKEUP_GESTURE
+	LOGI("fod_figer_state = %d\n",atomic_read(&tcm->fod_figer_state));
+	if (atomic_read(&tcm->fod_figer_state) == 0) /*prize add skip reset when fod down 20230704 */
+	{
+#endif
 #ifdef RESET_ON_RESUME
 	LOGI("Do reset on resume\n");
 	syna_pal_sleep_ms(RESET_ON_RESUME_DELAY_MS);
@@ -1161,6 +1215,9 @@ static int syna_dev_resume(struct device *dev)
 		LOGE("Fail to rezero\n");
 		goto exit;
 	}
+#endif
+#ifdef ENABLE_WAKEUP_GESTURE
+	}  /*prize add skip reset when fod down 20230704 */
 #endif
 	tcm->pwr_state = PWR_ON;
 
@@ -1211,6 +1268,9 @@ static int syna_dev_suspend(struct device *dev)
 	struct syna_hw_interface *hw_if = tcm->hw_if;
 	bool irq_disabled = true;
 
+#ifdef ENABLE_WAKEUP_GESTURE	
+	atomic_set(&tcm->now_system_status, 0); //prize add, suspend
+#endif	
 	/* exit directly if device is already in suspend state */
 	if (tcm->pwr_state != PWR_ON)
 		return 0;
@@ -1245,7 +1305,17 @@ static int syna_dev_suspend(struct device *dev)
 
 	return 0;
 }
-
+//drv-Solve the screen display and touch function-pengzhipeng-20230707-start
+struct syna_tcm *tcm_core = NULL;
+void prize_syna_dev_suspend(void)
+{
+	if(tcm_core !=  NULL)
+	{
+		syna_dev_suspend(&tcm_core->pdev->dev);
+	}
+}
+EXPORT_SYMBOL_GPL(prize_syna_dev_suspend);
+//drv-Solve the screen display and touch function-pengzhipeng-20230707-end
 #if defined(ENABLE_DISP_NOTIFIER)
 /**
  * syna_dev_early_suspend()
@@ -1585,19 +1655,37 @@ static struct drm_panel *syna_dev_get_panel(struct device_node *np)
 
 //drv-add GESTURE func-pengzhipeng-20230522-start
 #if defined(ENABLE_WAKEUP_GESTURE)
-struct syna_tcm *tcm_core;
+
 
 static void syna_double_type_func(unsigned char on)
 {
 
 	if(1 == on){
 		tcm_core->lpwg_enabled = true;
+		tcm_core->wakeup_click_enabled = true;
 		printk("%s enter DOUBLE-TAP gesture\n", __func__);
 	}else if(0 == on){
+		tcm_core->wakeup_click_enabled = false;
+		if(!tcm_core->finger_fod_enabled)
 		tcm_core->lpwg_enabled = false;
+		
 		printk("%s close DOUBLE-TAP gesture\n", __func__);
 	}
 
+}
+static void syna_double_fod_func(unsigned char on)
+{
+	if(1 == on){
+		tcm_core->lpwg_enabled = true;
+		tcm_core->finger_fod_enabled = true;
+		LOGI("%s enter finger fod\n", __func__);
+	}else if(0 == on){
+		tcm_core->finger_fod_enabled = false;
+		if(!tcm_core->wakeup_click_enabled)
+		tcm_core->lpwg_enabled = false;
+		
+		LOGI("%s close finger fod\n", __func__);
+	}
 }
 #endif
 //drv-add GESTURE func-pengzhipeng-20230522-end
@@ -1756,6 +1844,9 @@ static int syna_dev_probe(struct platform_device *pdev)
 #if defined(ENABLE_WAKEUP_GESTURE)
 	tcm_core = tcm;
 	prize_common_node_register("GESTURE", &syna_double_type_func);
+	prize_common_node_register("FINGER", &syna_double_fod_func);
+	atomic_set(&tcm->fod_figer_state, 0);
+	atomic_set(&tcm->now_system_status, 1);
 #endif
 	LOGI("TouchComm driver, %s v%d.%s installed\n",
 		PLATFORM_DRIVER_NAME,

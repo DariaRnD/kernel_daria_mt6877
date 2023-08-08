@@ -234,6 +234,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.mipi_data_lp2hs_settle_dc = 85,/*unit , ns*/
 		/* following for GetDefaultFramerateByScenario() */
 		.max_framerate = 300,
+		.mipi_pixel_rate = 135000000,
 	},
 	.cap = {
 		.pclk = 80000000,                /*record different mode's pclk*/
@@ -245,6 +246,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.grabwindow_height = 2448,
 		.mipi_data_lp2hs_settle_dc = 85,/*unit , ns*/
 		.max_framerate = 300,
+		.mipi_pixel_rate = 270000000,
 	},
 	.cap1 = {
 		/* capture for PIP 24fps relative information */
@@ -261,6 +263,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 		/* less than 13M(include 13M),cap1 max framerate is 24fps */
 		/* 16M max framerate is 20fps, 20M max framerate is 15fps */
 		.max_framerate = 240,
+		.mipi_pixel_rate = 270000000,
 	},
 	.normal_video = {
 		.pclk = 80000000,                /*record different mode's pclk*/
@@ -272,6 +275,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.grabwindow_height = 2448,
 		.mipi_data_lp2hs_settle_dc = 85,/*unit , ns*/
 		.max_framerate = 300,
+		.mipi_pixel_rate = 293000000,
 	},
 	.hs_video = {
 		.pclk = 80000000,                /*record different mode's pclk*/
@@ -283,6 +287,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.grabwindow_height = 1224,
 		.mipi_data_lp2hs_settle_dc = 85,/*unit , ns*/
 		.max_framerate = 300,
+		.mipi_pixel_rate = 293000000,
 	},
 	.slim_video = {
 		.pclk = 80000000,                /*record different mode's pclk*/
@@ -294,7 +299,17 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.grabwindow_height = 720,
 		.mipi_data_lp2hs_settle_dc = 85,/*unit , ns*/
 		.max_framerate = 300,
+		.mipi_pixel_rate = 135000000,
 	},
+//drv add by lipengpeng 20230707 start 
+	.min_gain = 73,
+	.max_gain = 4096,
+	.min_gain_iso = 100,
+	.exp_step = 2,
+	.gain_step = 1,
+	.gain_type = 0,
+	.temperature_support=0,
+//drv add by lipengpeng 20230707 end 
 	.margin = 4,	/* sensor framelength & shutter margin */
 	.min_shutter = 2,	/* min shutter */
 	.max_frame_length = 0x1fff,/*max framelength by sensor register's limitation*/
@@ -1702,6 +1717,119 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 
 	LOG_INF("feature_id = %d\n", feature_id);
 	switch (feature_id) {
+//drv add by lipengpeng 20230707 start 
+	case SENSOR_FEATURE_GET_GAIN_RANGE_BY_SCENARIO:		
+			*(feature_data + 1) = imgsensor_info.min_gain;		
+			*(feature_data + 2) = imgsensor_info.max_gain;		
+			break;	
+	case SENSOR_FEATURE_GET_BASE_GAIN_ISO_AND_STEP:		
+			*(feature_data + 0) = imgsensor_info.min_gain_iso;		
+			*(feature_data + 1) = imgsensor_info.gain_step;		
+			*(feature_data + 2) = imgsensor_info.gain_type;		
+			break;	
+	case SENSOR_FEATURE_GET_MIN_SHUTTER_BY_SCENARIO:		
+				*(feature_data + 1) = imgsensor_info.min_shutter;		
+				*(feature_data + 2) = imgsensor_info.exp_step;		
+				break;	
+	case SENSOR_FEATURE_GET_BINNING_TYPE:		
+					switch (*(feature_data + 1)) 
+						{		
+						case MSDK_SCENARIO_ID_CUSTOM3:			
+							*feature_return_para_32 = 1; /*BINNING_NONE*/			
+							break;		
+							case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:		
+							case MSDK_SCENARIO_ID_VIDEO_PREVIEW:		
+							case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:		
+							case MSDK_SCENARIO_ID_SLIM_VIDEO:		
+							case MSDK_SCENARIO_ID_CAMERA_PREVIEW:		
+							case MSDK_SCENARIO_ID_CUSTOM4:		
+								default:			
+								*feature_return_para_32 = 1; /*BINNING_AVERAGED*/			
+								break;	
+						}		
+					pr_debug("SENSOR_FEATURE_GET_BINNING_TYPE AE_binning_type:%d,\n",*feature_return_para_32);		
+					*feature_para_len = 4;		
+					break;
+	case SENSOR_FEATURE_GET_AWB_REQ_BY_SCENARIO:	
+			switch (*feature_data) {	
+				case MSDK_SCENARIO_ID_CUSTOM3:			
+					*(MUINT32 *)(uintptr_t)(*(feature_data + 1)) = 1;			
+					break;		
+					default:			
+						*(MUINT32 *)(uintptr_t)(*(feature_data + 1)) = 0;			
+						break;		
+						}		
+			break;
+	case SENSOR_FEATURE_GET_FRAME_CTRL_INFO_BY_SCENARIO:		
+				/*		 * 1, if driver support new sw frame sync		
+				* set_shutter_frame_length() support third para auto_extend_en		 */		
+				*(feature_data + 1) = 1;		/* margin info by scenario */		
+				*(feature_data + 2) = imgsensor_info.margin;		
+				break;	
+//drv add by lipengpeng 20230707 end 
+	case SENSOR_FEATURE_GET_PIXEL_CLOCK_FREQ_BY_SCENARIO:
+		switch (*feature_data) {
+		case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= imgsensor_info.cap.pclk;
+			break;
+		case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= imgsensor_info.normal_video.pclk;
+			break;
+		case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= imgsensor_info.hs_video.pclk;
+			break;
+		case MSDK_SCENARIO_ID_SLIM_VIDEO:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= imgsensor_info.slim_video.pclk;
+			break;
+		case MSDK_SCENARIO_ID_CAMERA_PREVIEW:
+
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= imgsensor_info.pre.pclk;
+			break;
+		default:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= imgsensor_info.pre.pclk;
+			break;
+		}
+		break;
+	case SENSOR_FEATURE_GET_PERIOD_BY_SCENARIO:
+		switch (*feature_data) {
+		case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= (imgsensor_info.cap.framelength << 16)
+				+ imgsensor_info.cap.linelength;
+			break;
+		case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= (imgsensor_info.normal_video.framelength << 16)
+				+ imgsensor_info.normal_video.linelength;
+			break;
+		case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= (imgsensor_info.hs_video.framelength << 16)
+				+ imgsensor_info.hs_video.linelength;
+			break;
+		case MSDK_SCENARIO_ID_SLIM_VIDEO:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= (imgsensor_info.slim_video.framelength << 16)
+				+ imgsensor_info.slim_video.linelength;
+			break;
+		case MSDK_SCENARIO_ID_CAMERA_PREVIEW:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+				= (imgsensor_info.pre.framelength << 16)
+				+ imgsensor_info.pre.linelength;
+			break;
+		default:
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1))
+			= (imgsensor_info.pre.framelength << 16)
+				+ imgsensor_info.pre.linelength;
+			break;
+		}
+		break;
 	case SENSOR_FEATURE_GET_PERIOD:
 		*feature_return_para_16++ = imgsensor.line_length;
 		*feature_return_para_16 = imgsensor.frame_length;
@@ -1710,6 +1838,31 @@ static kal_uint32 feature_control(MSDK_SENSOR_FEATURE_ENUM feature_id,
 	case SENSOR_FEATURE_GET_PIXEL_CLOCK_FREQ:
 		*feature_return_para_32 = imgsensor.pclk;
 		*feature_para_len = 4;
+		break;
+	case SENSOR_FEATURE_GET_MIPI_PIXEL_RATE:
+		{
+			kal_uint32 rate;
+
+			switch (*feature_data) {
+			case MSDK_SCENARIO_ID_CAMERA_CAPTURE_JPEG:
+				rate = imgsensor_info.cap.mipi_pixel_rate;
+				break;
+			case MSDK_SCENARIO_ID_VIDEO_PREVIEW:
+				rate = imgsensor_info.normal_video.mipi_pixel_rate;
+				break;
+			case MSDK_SCENARIO_ID_HIGH_SPEED_VIDEO:
+				rate = imgsensor_info.hs_video.mipi_pixel_rate;
+				break;
+			case MSDK_SCENARIO_ID_SLIM_VIDEO:
+				rate = imgsensor_info.slim_video.mipi_pixel_rate;
+				break;
+			case MSDK_SCENARIO_ID_CAMERA_PREVIEW:
+			default:
+				rate = imgsensor_info.pre.mipi_pixel_rate;
+				break;
+			}
+			*(MUINT32 *)(uintptr_t)(*(feature_data + 1)) = rate;
+		}
 		break;
 	case SENSOR_FEATURE_SET_ESHUTTER:
 		set_shutter(*feature_data);

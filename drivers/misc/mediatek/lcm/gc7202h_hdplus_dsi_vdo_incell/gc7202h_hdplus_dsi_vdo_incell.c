@@ -444,7 +444,12 @@ static struct LCM_setting_table lcm_deep_sleep_mode_in_setting[] = {
 {0x2F,1,{0x0D}},
 {0xFF,1,{0x10}},
 {0x28,1,{0x00}},
+{0xFF,1,{0x22}}, 
+{0xE4,1,{0x00}},  // fae modify close tp scan while lcm is off
 {REGFLAG_DELAY,50,{}},
+
+
+{0xFF,1,{0x10}},
 {0x10,1,{0x00}},
 {REGFLAG_DELAY,120,{}},
 {0xFF,1,{0x26}},

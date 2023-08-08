@@ -28,6 +28,7 @@ struct lcd_bias {
 	int gpio_lcd_ldo18_pin;
 	int gpio_lcd_ldo28_pin;
 	int gpio_lcd_fd_pin;
+	int gpio_tpd_rst_pin;
 };
 static struct lcd_bias *bias;
 
@@ -309,6 +310,22 @@ int display_fd_enable(int enable){
 	return ret;
 }
 
+int display_tpd_rst_enable(int enable)
+{
+	int ret = 0;
+
+	if (gpio_is_valid(bias->gpio_tpd_rst_pin)){
+		gpio_request(bias->gpio_tpd_rst_pin,"tpd_rst");
+		if (enable){
+			gpio_direction_output(bias->gpio_tpd_rst_pin,1);
+		}else{
+			gpio_direction_output(bias->gpio_tpd_rst_pin,0);
+		}
+		gpio_free(bias->gpio_tpd_rst_pin);
+	}
+	return ret;
+}
+
 static int lcd_bias_parse_dt(struct lcd_bias *bias){
 
 	struct device_node *node;
@@ -328,6 +345,11 @@ static int lcd_bias_parse_dt(struct lcd_bias *bias){
 		bias->gpio_lcd_fd_pin = of_get_named_gpio(node,"gpio_lcd_fd-gpio",0);
 		if (bias->gpio_lcd_fd_pin < 0){
 			printk(KERN_INFO"lcm_pmic get gpio_lcd_fd_pin fail %d\n",bias->gpio_lcd_fd_pin);
+		}
+
+		bias->gpio_tpd_rst_pin = of_get_named_gpio(node,"gpio_tpd_rst-gpio",0);
+		if (bias->gpio_tpd_rst_pin < 0){
+			printk(KERN_INFO"lcm_pmic get gpio_tpd_rst_pin fail %d\n",bias->gpio_tpd_rst_pin);
 		}
 
 	}else{

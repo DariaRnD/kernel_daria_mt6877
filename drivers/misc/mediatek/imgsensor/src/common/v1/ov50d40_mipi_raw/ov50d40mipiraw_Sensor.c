@@ -41,7 +41,7 @@
 
 #define MULTI_WRITE 1
 
-#define PDAF_SUPPORT 0
+#define PDAF_SUPPORT 1
 #define  OV50D40_MIRROR_FLIP_ENABLE 1
 #define  REMOSAIC_SUPPORT 0  // prize add by zhuzhengjiang for disable remosaic 
 
@@ -50,7 +50,7 @@ static DEFINE_SPINLOCK(imgsensor_drv_lock);
 static struct imgsensor_info_struct imgsensor_info = {
 	.sensor_id = OV50D40_SENSOR_ID,
 
-	.checksum_value = 0x788279ef,
+	.checksum_value = 0x989bc060, // 0x788279ef,  /* prize modify ata checksum */
 
 	.pre = {
 		.pclk = 99960000,
@@ -108,8 +108,8 @@ static struct imgsensor_info_struct imgsensor_info = {
 		.framelength = 1956,
 		.startx = 0,
 		.starty = 0,
-		.grabwindow_width = 1920,
-		.grabwindow_height = 1080,
+		.grabwindow_width = 640,
+		.grabwindow_height = 480,
 		.mipi_data_lp2hs_settle_dc = 85,//unit , ns
 		.max_framerate = 1200,
 		.mipi_pixel_rate = 760800000,
@@ -203,7 +203,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 	},
 
 	.min_gain = 64,
-	.max_gain = 4096,
+	.max_gain = 3968,
 	.min_gain_iso = 100,
 	.exp_step = 2,
 	.gain_step = 2,
@@ -279,7 +279,8 @@ static struct SENSOR_WINSIZE_INFO_STRUCT imgsensor_winsize_info[10] = {
 	{ 8192,  6144,  0,  0,  8192,  6144,  4096,  3072,  0000,  0000,  4096,  3072,  0,  0,  4096,  3072},	/*Preview*/
 	{ 8192,  6144,  0,  0,  8192,  6144,  4096,  3072,  0000,  0000,  4096,  3072,  0,  0,  4096,  3072},	/*capture*/
 	{ 8192,  6144,  0,  0,  8192,  6144,  4096,  3072,  0000,  384,   4096,  2304,  0,  0,  4096,  2304},	/*normal video*/
-	{ 8192,  6144,  0,  0,  8192,  6144,  2048,  1536,    64,   228,  1920,  1080,  0,  0,  1920,  1080},	/*hs video*/ //1080p@120fps
+	//{ 8192,  6144,  0,  0,  8192,  6144,  2048,  1536,    64,   228,  1920,  1080,  0,  0,  1920,  1080},	/*hs video*/ //1080p@120fps
+	{ 8192,  6144,  0,  0,  8192,  6144,  1024,  768,    192,   144,  640,  480,  0,  0,  640,  480},	/*hs video*/ //1080p@120fps
 	{ 8192,  6144,  0,  0,  8192,  6144,  4096,  3072,   128,   456,  3840,  2160,  0,  0,  3840,  2160},	/*slim video*/ //2K@30fps
 
 	{ 8192,  6144,  0,  0,  8192,  6144,  2048,  1536,    64,   228,  1920,  1080,  0,  0,  1920,  1080},	/*custom1*/ //1080p@60fps
@@ -503,8 +504,9 @@ static void write_shutter(kal_uint32 shutter)
 	
 		imgsensor.current_ae_effective_frame = 2;
 		imgsensor.frame_length = (imgsensor.frame_length  >> 1) << 1;
-		//write_cmos_sensor(0x3840, (imgsensor.frame_length >> 16) & 0xFF);
-		write_cmos_sensor(0x380E, (imgsensor.frame_length >> 8) & 0xFF);
+		write_cmos_sensor(0x3840, (imgsensor.frame_length >> 16) & 0xFF);
+		shutter = (shutter >> 1) << 1;
+                write_cmos_sensor(0x380E, (imgsensor.frame_length >> 8) & 0xFF);
 		write_cmos_sensor(0x380F, (imgsensor.frame_length >> 0) & 0xFF);
 		write_cmos_sensor(0x3500, (shutter >> 16) & 0xFF);
 		write_cmos_sensor(0x3501, (shutter >> 8) & 0xFF);
@@ -626,10 +628,10 @@ static void normal_video_setting(kal_uint16 currefps)
 
 static void hs_video_setting(void)
 {
-	LOG_INF("hs_video_setting RES_1920x1080_120fps\n");
+	LOG_INF("hs_video_setting RES_640x480_120fps\n");
 	ov50d40_table_write_cmos_sensor(
-		addr_data_pair_1920x1080_120fps_ov50d40,
-		sizeof(addr_data_pair_1920x1080_120fps_ov50d40) /
+		addr_data_pair_640x480_120fps_ov50d40,
+		sizeof(addr_data_pair_640x480_120fps_ov50d40) /
 		sizeof(kal_uint16));
 }
 

@@ -542,24 +542,24 @@ int ir_aw36515_pwm_enable(int enable)
 	if(enable) {
 		pinctrl_select_state(aw36515_pinctrl, aw36515_pwm_on);
 		pwm_setting.PWM_MODE_OLD_REGS.THRESH= 120;		   /* thresh*/
+		pwm_setting.pwm_no =PWM1;		 /*PWM1*/
+		pwm_setting.mode = PWM_MODE_OLD;
+		pwm_setting.clk_src =PWM_CLK_OLD_MODE_BLOCK ;
+		pwm_setting.clk_div =0;
+		pwm_setting.pmic_pad =0;
+		pwm_setting.PWM_MODE_OLD_REGS.DATA_WIDTH= 160;			/* period */
+		pwm_setting.PWM_MODE_OLD_REGS.IDLE_VALUE= 0;
+		pwm_setting.PWM_MODE_OLD_REGS.GUARD_VALUE= 0;
+		pwm_setting.PWM_MODE_OLD_REGS.GDURATION= 0;
+		pwm_setting.PWM_MODE_OLD_REGS.WAVE_NUM= 0;
+
+		pwm_set_spec_config(&pwm_setting);
 	}
 	else {
 		pinctrl_select_state(aw36515_pinctrl, aw36515_pwm_off);
-		pwm_setting.PWM_MODE_OLD_REGS.THRESH = 0;
+		mt_pwm_disable(PWM1,0);
 	}
 
-	pwm_setting.pwm_no =PWM1;		 /*PWM1*/
-	pwm_setting.mode = PWM_MODE_OLD;
-	pwm_setting.clk_src =PWM_CLK_OLD_MODE_BLOCK ;
-	pwm_setting.clk_div =0;
-	pwm_setting.pmic_pad =0;
-	pwm_setting.PWM_MODE_OLD_REGS.DATA_WIDTH= 160;			/* period */
-	pwm_setting.PWM_MODE_OLD_REGS.IDLE_VALUE= 0;
-	pwm_setting.PWM_MODE_OLD_REGS.GUARD_VALUE= 0;
-	pwm_setting.PWM_MODE_OLD_REGS.GDURATION= 0;
-	pwm_setting.PWM_MODE_OLD_REGS.WAVE_NUM= 0;
-
-	pwm_set_spec_config(&pwm_setting);
 	return 0;
 }
 #endif

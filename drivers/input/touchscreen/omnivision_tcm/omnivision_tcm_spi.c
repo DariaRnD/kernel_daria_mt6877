@@ -612,7 +612,8 @@ static int ovt_tcm_spi_probe(struct spi_device *spi)
 	hw_if.bus_io = &bus_io;
 
 	spi->bits_per_word = 8;
-
+	//spi->chip_select = 0;//prize modify by shenwenbin for compare other TP
+	
 	retval = spi_setup(spi);
 	if (retval < 0) {
 		LOGE(&spi->dev,

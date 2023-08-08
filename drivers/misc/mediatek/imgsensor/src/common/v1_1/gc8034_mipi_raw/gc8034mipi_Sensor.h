@@ -36,7 +36,8 @@ struct imgsensor_mode_struct {
 
 	kal_uint16 grabwindow_width;    /*record different mode's width of grabwindow*/
 	kal_uint16 grabwindow_height;    /*record different mode's height of grabwindow*/
-
+	
+	kal_uint32 mipi_pixel_rate;
 	/* following for MIPIDataLowPwr2HighSpeedSettleDelayCount by different scenario    */
 	kal_uint8 mipi_data_lp2hs_settle_dc;
 
@@ -96,7 +97,15 @@ struct imgsensor_info_struct {
 	kal_uint8  video_delay_frame;    /*enter video delay frame num*/
 	kal_uint8  hs_video_delay_frame;    /*enter high speed video  delay frame num*/
 	kal_uint8  slim_video_delay_frame;    /*enter slim video delay frame num*/
-
+//drv add by lipengpeng 20230707 start 
+	kal_uint8 temperature_support;	/* 1, support; 0,not support */
+	kal_uint32 min_gain;
+	kal_uint32 max_gain;
+	kal_uint32 min_gain_iso;
+	kal_uint32 gain_step;
+	kal_uint32 exp_step;
+	kal_uint32 gain_type;
+//drv add by lipengpeng 20230707 end 
 	kal_uint8  margin;                /*sensor framelength & shutter margin*/
 	kal_uint32 min_shutter;            /*min shutter*/
 	kal_uint32 max_frame_length;    /*max framelength by sensor register's limitation*/

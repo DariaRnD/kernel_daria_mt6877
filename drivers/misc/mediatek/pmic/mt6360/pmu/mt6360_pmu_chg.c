@@ -853,19 +853,6 @@ static int mt6360_get_min_ichg(struct charger_device *chg_dev, u32 *uA)
 	return 0;
 }
 
-static int mt6360_set_cv(struct charger_device *chg_dev, u32 uV)
-{
-	struct mt6360_pmu_chg_info *mpci = charger_get_data(chg_dev);
-	u8 data = 0;
-
-	dev_dbg(mpci->dev, "%s: cv = %d\n", __func__, uV);
-	data = mt6360_trans_cv_sel(uV);
-	return mt6360_pmu_reg_update_bits(mpci->mpi,
-					  MT6360_PMU_CHG_CTRL4,
-					  MT6360_MASK_VOREG,
-					  data << MT6360_SHFT_VOREG);
-}
-
 static int mt6360_get_cv(struct charger_device *chg_dev, u32 *uV)
 {
 	struct mt6360_pmu_chg_info *mpci = charger_get_data(chg_dev);
@@ -877,6 +864,50 @@ static int mt6360_get_cv(struct charger_device *chg_dev, u32 *uV)
 	ret = (ret & MT6360_MASK_VOREG) >> MT6360_SHFT_VOREG;
 	*uV = 3900000 + (ret * 10000);
 	return 0;
+}
+
+static int mt6360_set_cv(struct charger_device *chg_dev, u32 uV)
+{
+	struct mt6360_pmu_chg_info *mpci = charger_get_data(chg_dev);
+	u8 data = 0;
+	u32 reg_data = 0;
+	int ret = 0;
+
+	dev_dbg(mpci->dev, "%s: cv = %d\n", __func__, uV);
+	ret = mt6360_get_cv(chg_dev, &reg_data);
+	if (ret < 0)
+		return ret;
+
+	if (uV == reg_data) /* same */
+		return ret;
+
+	ret = mt6360_enable_hidden_mode(mpci->chg_dev, true);
+	if (ret < 0)
+		return ret;
+
+	reg_data = mt6360_pmu_reg_read(mpci->mpi, MT6360_PMU_CHG_HIDDEN_CTRL22);
+	if (reg_data < 0)
+		goto out;
+	/* set reg0x45[6:5]=11 */
+	ret = mt6360_pmu_reg_set_bits(mpci->mpi, MT6360_PMU_CHG_HIDDEN_CTRL22,
+				      MT6360_MASK_BATOVP_LVL);
+	if (ret < 0)
+		goto out;
+
+	data = mt6360_trans_cv_sel(uV);
+	ret = mt6360_pmu_reg_update_bits(mpci->mpi,
+					 MT6360_PMU_CHG_CTRL4,
+					 MT6360_MASK_VOREG,
+					 data << MT6360_SHFT_VOREG);
+	if (ret < 0)
+		goto out;
+
+	mdelay(5);
+	ret = mt6360_pmu_reg_write(mpci->mpi, MT6360_PMU_CHG_HIDDEN_CTRL22,
+				   reg_data);
+out:
+	mt6360_enable_hidden_mode(mpci->chg_dev, false);
+	return ret;
 }
 
 static int mt6360_toggle_aicc(struct mt6360_pmu_chg_info *mpci)

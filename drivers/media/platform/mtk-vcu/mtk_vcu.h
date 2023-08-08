@@ -28,6 +28,12 @@
 
 #endif
 
+#define SNPRINTF(args...)				\
+	do {						\
+		if (snprintf(args) < 0)			\
+			pr_notice("snprintf error\n");	\
+	} while (0)
+
 /**
  * VCU (Video Communication/Controller Unit)
  * is a tiny processor controlling video hardware

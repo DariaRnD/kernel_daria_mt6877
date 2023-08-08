@@ -426,6 +426,7 @@ static int upm6910_do_event(struct charger_device *chg_dev, u32 event, u32 args)
     default:
         break;
     }
+	power_supply_changed(upm->psy);
     return 0;
 }
 
@@ -450,7 +451,7 @@ int upm6910_set_boost_current(struct upm6910 *upm, int curr)
 	u8 val;
 
 	val = REG02_BOOST_LIM_0P5A;
-	if (curr == BOOSTI_1200)
+		if (curr >= BOOSTI_1200)
 		val = REG02_BOOST_LIM_1P2A;
 
 	return upm6910_update_bits(upm, UPM6910_REG_02, REG02_BOOST_LIM_MASK,
@@ -1028,7 +1029,11 @@ static int upm6910_init_device(struct upm6910 *upm)
 	ret = upm6910_set_acovp_threshold(upm, upm->platform_data->vac_ovp);
 	if (ret)
 		pr_err("Failed to set acovp threshold, ret = %d\n", ret);
-
+//hjw   for  safety time disable start
+	ret = upm6910_disable_safety_timer(upm);
+	if (ret)
+		pr_err("upm6910_disable_safety_timer, ret = %d\n", ret);
+//hjw   for  safety time disable end
 	ret = upm6910_set_int_mask(upm,
 				   REG0A_IINDPM_INT_MASK |
 				   REG0A_VINDPM_INT_MASK);
@@ -1075,7 +1080,9 @@ static void upm6910_dump_regs(struct upm6910 *upm)
 	for (addr = 0x0; addr <= 0x0B; addr++) {
 		ret = upm6910_read_byte(upm, addr, &val);
 		if (ret == 0)
+		{
 			pr_err("Reg[%.2x] = 0x%.2x\n", addr, val);
+		}
 	}
 }
 
@@ -1316,7 +1323,7 @@ static int upm6910_set_safety_timer(struct charger_device *chg_dev, bool en)
 {
 	struct upm6910 *upm = dev_get_drvdata(&chg_dev->dev);
 	int ret;
-
+	en = 0; // drv hjw  for  disable safety_timer start
 	if (en)
 		ret = upm6910_enable_safety_timer(upm);
 	else
@@ -1510,6 +1517,26 @@ static int upm6910_charger_get_online(struct upm6910 *info,bool *val)
 	return 0;
 }
 
+static int upm6910_charger_set_property(struct power_supply *psy,
+				       enum power_supply_property psp,
+				       const union power_supply_propval *val)
+{
+	struct upm6910 *info = power_supply_get_drvdata(psy);
+	int ret = 0;
+
+	pr_err("%s: prop = %d\n", __func__, psp);
+	switch (psp) {
+	case POWER_SUPPLY_PROP_CHARGE_TERM_CURRENT:
+		//ret = mt6370_pmu_chg_set_online(chg_data, val);
+		upm6910_set_term_current(info, val->intval);
+		break;
+	default:
+		ret = -EINVAL;
+		break;
+	}
+	return ret;
+}
+
 static int upm6910_charger_get_property(struct power_supply *psy,
 				       enum power_supply_property psp,
 				       union power_supply_propval *val)
@@ -1584,6 +1611,7 @@ static const struct power_supply_desc upm6910_charger_desc = {
 	.properties		= upm6910_charger_properties,
 	.num_properties		= ARRAY_SIZE(upm6910_charger_properties),
 	.get_property		= upm6910_charger_get_property,
+	.set_property = upm6910_charger_set_property,
 	.usb_types		= upm6910_charger_usb_types,
 	.num_usb_types		= ARRAY_SIZE(upm6910_charger_usb_types),
 };

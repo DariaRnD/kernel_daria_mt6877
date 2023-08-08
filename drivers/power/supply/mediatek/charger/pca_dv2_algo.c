@@ -948,7 +948,7 @@ static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
 				if(data->is_dvchg_en[DV2_DVCHG_SLAVE]){
 					ita = min(ita, data->ita_lmt - (2 * ibat_lmt[index]));
 				}else{
-					ita = min(ita, data->ita_lmt - tbat_curlmt_scp[index]);
+					ita = min(ita, data->ita_lmt - tbat_curlmt_scp[data->tbat_level]);
 				}
 		}
 	} else {
@@ -4008,7 +4008,7 @@ static bool dv2_is_algo_running(struct prop_chgalgo_device *pca)
 	}
 
 	running = !(data->state == DV2_ALGO_STOP);
-	PCA_DBG("running = %d\n", running);
+	PCA_ERR("running = %d\n", running);
 out_unlock:
 	mutex_unlock(&data->lock);
 out:

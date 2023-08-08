@@ -59,6 +59,8 @@ extern int32_t nvt_extra_proc_init(void);
 extern void nvt_extra_proc_deinit(void);
 #endif
 
+extern int32_t nvt_set_glove_switch(uint8_t glove_switch);
+
 #if NVT_TOUCH_MP
 extern int32_t nvt_mp_proc_init(void);
 extern void nvt_mp_proc_deinit(void);
@@ -1923,6 +1925,8 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 
 
 	bTouchIsAwake = 1;
+	ts->gesture_status = false;
+	ts->glove_status = false;
 	NVT_LOG("end\n");
 
 	nvt_irq_enable(true);
@@ -2195,9 +2199,10 @@ static int32_t nvt_ts_suspend(struct device *dev)
 		return 0;
 	}
 
-#if !WAKEUP_GESTURE
-	nvt_irq_enable(false);
-#endif
+//#if !WAKEUP_GESTURE
+	if (ts->gesture_status == 0)
+		nvt_irq_enable(false);
+//#endif
 
 #if NVT_TOUCH_ESD_PROTECT
 	NVT_LOG("cancel delayed work sync\n");
@@ -2211,22 +2216,24 @@ static int32_t nvt_ts_suspend(struct device *dev)
 
 	bTouchIsAwake = 0;
 
-#if WAKEUP_GESTURE
-	//---write command to enter "wakeup gesture mode"---
-	buf[0] = EVENT_MAP_HOST_CMD;
-	buf[1] = 0x13;
-	CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
+//#if WAKEUP_GESTURE
+	if (ts->gesture_status == 1) {
+		//---write command to enter "wakeup gesture mode"---
+		buf[0] = EVENT_MAP_HOST_CMD;
+		buf[1] = 0x13;
+		CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
 
-	enable_irq_wake(ts->client->irq);
+		enable_irq_wake(ts->client->irq);
 
-	NVT_LOG("Enabled touch wakeup gesture\n");
-
-#else // WAKEUP_GESTURE
-	//---write command to enter "deep sleep mode"---
-	buf[0] = EVENT_MAP_HOST_CMD;
-	buf[1] = 0x11;
-	CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
-#endif // WAKEUP_GESTURE
+		NVT_LOG("Enabled touch wakeup gesture\n");
+	} else {
+//#else // WAKEUP_GESTURE
+		//---write command to enter "deep sleep mode"---
+		buf[0] = EVENT_MAP_HOST_CMD;
+		buf[1] = 0x11;
+		CTP_I2C_WRITE(ts->client, I2C_FW_Address, buf, 2);
+	}
+//#endif // WAKEUP_GESTURE
 
 	mutex_unlock(&ts->lock);
 
@@ -2285,6 +2292,9 @@ static int32_t nvt_ts_resume(struct device *dev)
 
 	NVT_LOG("start\n");
 
+	if (ts->gesture_status == 1)
+		disable_irq_wake(ts->client->irq);
+
 	// please make sure display reset(RESX) sequence and mipi dsi cmds sent before this
 #if NVT_TOUCH_SUPPORT_HW_RST
 	gpio_set_value(ts->reset_gpio, 1);
@@ -2298,15 +2308,21 @@ static int32_t nvt_ts_resume(struct device *dev)
 		nvt_check_fw_reset_state(RESET_STATE_REK);
 	}
 
-#if !WAKEUP_GESTURE
-	nvt_irq_enable(true);
-#endif
+//#if !WAKEUP_GESTURE
+	if (ts->gesture_status == 0)
+		nvt_irq_enable(true);
+//#endif
 
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
 	queue_delayed_work(nvt_esd_check_wq, &nvt_esd_check_work,
 			msecs_to_jiffies(NVT_TOUCH_ESD_CHECK_PERIOD));
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
+
+	if (ts->glove_status == true){
+		nvt_set_glove_switch(1);
+		NVT_LOG("glove = %d\n", ts->glove_status);
+	}
 
 	bTouchIsAwake = 1;
 
