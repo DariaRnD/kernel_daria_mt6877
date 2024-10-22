@@ -14,6 +14,12 @@
 #include <custome_external_battery.h>
 #endif
 
+#if defined(CONFIG_SM5602_SUPPORT)
+#define EXTERNAL_FG_NAME "sm-bat"
+#elif defined(CONFIG_MTK_CW2217_SUPPORT)
+#define EXTERNAL_FG_NAME "cw-bat"
+#endif
+
 int __attribute__((weak)) charger_get_vbus(void)
 {
 	return 4500;
@@ -85,9 +91,9 @@ _CODE_DEFINEDE
 
 signed int battery_is_present(void)
 {
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_PRESENT, &value);
 		pr_info("%s:get cw-bat success, present(%d)\n",__func__, value.intval);
@@ -101,9 +107,9 @@ signed int battery_is_present(void)
 
 signed int battery_get_bat_voltage(void)
 {
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_VOLTAGE_NOW, &value);
 		pr_info("%s:get cw-bat success, vol(%d)\n",__func__, value.intval);
@@ -118,9 +124,9 @@ signed int battery_get_bat_current(void)
 {
 	int curr_val;
 	bool is_charging;
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CURRENT_NOW, &value);
 		pr_info("%s:get cw-bat success, curr(%d)\n",__func__, value.intval);
@@ -143,9 +149,9 @@ signed int battery_get_soc(void)
 {
 	struct mtk_battery *gm = get_mtk_battery();
 
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CAPACITY, &value);
 		pr_info("%s:get cw-bat success, soc(%d)\n",__func__, value.intval);
@@ -164,14 +170,14 @@ signed int battery_get_uisoc(void)
 {
 	struct mtk_battery *gm = get_mtk_battery();
 /*prize added by lvyuanchuan,X9LAVA-1234,20230516 start*/
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	#define FG_RETRY_COUNT          9
 	int loop = 0;
 	union power_supply_propval value;
 	struct power_supply *cwfg_psy = NULL;
 
 retry:
-	cwfg_psy = power_supply_get_by_name("cw-bat");
+	cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CAPACITY, &value);
 		pr_info("%s:get cw-bat success, ui_soc(%d)\n",__func__, value.intval);
@@ -206,9 +212,9 @@ retry:
 signed int battery_get_bat_temperature(void)
 {
 	/* TODO */
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_TEMP, &value);
 		pr_info("%s:get cw-bat success, temp(%d)\n",__func__, value.intval);
@@ -237,9 +243,9 @@ signed int battery_get_vbus(void)
 signed int battery_get_bat_avg_current(void)
 {
 	bool valid;
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_CURRENT_NOW, &value);
 		pr_info("%s:get cw-bat success, curr(%d)\n",__func__, value.intval);
@@ -323,9 +329,9 @@ unsigned int battery_get_is_kpoc(void)
 
 bool battery_is_battery_exist(void)
 {
-#if defined(CONFIG_MTK_CW2217_SUPPORT)
+#if defined(EXTERNAL_FG_NAME)
 	union power_supply_propval value;
-	struct power_supply *cwfg_psy = power_supply_get_by_name("cw-bat");
+	struct power_supply *cwfg_psy = power_supply_get_by_name(EXTERNAL_FG_NAME);
 	if (cwfg_psy) {
 		power_supply_get_property(cwfg_psy, POWER_SUPPLY_PROP_PRESENT, &value);
 		pr_info("%s:get cw-bat success, present(%d)\n",__func__, value.intval);
