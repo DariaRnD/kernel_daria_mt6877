@@ -44,7 +44,10 @@
 #include <tcpm.h>
 
 #include "mtk_charger_intf.h"
+
+#ifdef CONFIG_TOUCHSCREEN_GOODIX_BRL
 extern int tp_mode_notifier_call_chain(unsigned long val, void *v);
+#endif
 
 int check_cable_in;
 struct tag_bootmode {
@@ -444,7 +447,9 @@ static void plug_in_out_handler(struct chg_type_info *cti, bool en, bool ignore)
 	cti->ignore_usb = ignore;
 	cti->plugin = en;
 	check_cable_in = en;
+#ifdef CONFIG_TOUCHSCREEN_GOODIX_BRL
 	tp_mode_notifier_call_chain(en, "charging");
+#endif
 	chr_err("%s, check_cable_in: %d\n", __func__, check_cable_in);
 	atomic_inc(&cti->chgdet_cnt);
 	wake_up_interruptible(&cti->waitq);
