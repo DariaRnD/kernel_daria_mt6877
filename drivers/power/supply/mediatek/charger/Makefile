@@ -53,3 +53,6 @@ obj-$(CONFIG_CHARGER_SGM41516D) += sgm41516d.o
 #prize add by lvyuanchuan for cp ,20221018 start
 obj-$(CONFIG_CHARGER_SC8551) += sc8551.o
 #prize add by lvyuanchuan for cp ,20221018 end
+#pri add by lvyuanchuan 20240820 start
+obj-$(CONFIG_CHARGER_UPM6722) += upm6722.o
+#pri add by lvyuanchuan 20240820 end
