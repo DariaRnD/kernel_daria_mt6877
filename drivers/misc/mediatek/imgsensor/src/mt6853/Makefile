@@ -86,6 +86,10 @@ subdir-ccflags-y		+= -I$(IMGSENSOR_DRIVER_PATH)/common/$(COMMON_VERSION)/camera_
 # Enable parallelism
 # subdir-ccflags-y += -DSENSOR_PARALLEISM
 
+ifneq ($(ARCH_MTK_PROJECT),)
+subdir-ccflags-y += -D$(ARCH_MTK_PROJECT)
+endif
+
 ifneq (,$(wildcard $(IMGSENSOR_DRIVER_PATH)/$(CONFIG_MTK_PLATFORM_SENSOR)/seninf_$(MTK_DERIVED_PLATFORM)))
 subdir-ccflags-y += -I$(IMGSENSOR_DRIVER_PATH)/$(CONFIG_MTK_PLATFORM_SENSOR)/seninf_$(MTK_DERIVED_PLATFORM)/
 obj-y += seninf_$(MTK_DERIVED_PLATFORM)/

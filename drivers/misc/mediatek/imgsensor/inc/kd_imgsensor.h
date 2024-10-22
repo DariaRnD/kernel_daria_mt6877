@@ -465,6 +465,13 @@
 #define BF2257CSMACRO_MIPI_SENSOR_ID		(0x2257+2)
 // prize add by linchong 20211214 end
 
+//prize add by xiaguohong 20240905 start 
+#define OV50E40_SENSOR_ID                       0x565045
+#define SENSOR_DRVNAME_OV50E40_MIPI_RAW         "ov50e40_mipi_raw"
+#define OV08D10WIDE_SENSOR_ID                   0x56
+#define SENSOR_DRVNAME_OV08D10WIDE_MIPI_RAW     "ov08d10wide_mipi_raw"
+//prize add by xiaguohong 20240905 end 
+
 // drv add by linchong 20230529 start
 #define S5KGM2SP_SENSOR_ID                        0x08d2
 #define S5KGM2SPTWO_SENSOR_ID                        0x08d2+1

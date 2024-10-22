@@ -11,6 +11,34 @@
 
 /* Legacy design */
 struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
+#if defined(OV50E40_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_OV50E40_MIPI_RAW,
+		{
+			{SensorMCLK, Vol_High, 0},
+			{RST, Vol_Low, 5},
+			{AVDD, Vol_2800, 5},
+			{DOVDD, Vol_1800, 5},
+			{PDN, Vol_High, 0},
+			{DVDD, Vol_1100, 2},
+			{AFVDD, Vol_2800, 3},
+			{RST, Vol_High, 5}
+		},
+	},
+#endif
+#if defined(OV08D10WIDE_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_OV08D10WIDE_MIPI_RAW,
+		{
+			{RST, Vol_Low, 0},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 1},
+			{DVDD, Vol_1200, 5},
+			{RST, Vol_High, 0},
+			{SensorMCLK, Vol_High, 8},
+		},
+	},
+#endif
 #if defined(GC08A3REAR_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_GC08A3REAR_MIPI_RAW,
@@ -272,7 +300,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
-//drv add by lipengpeng 20230830 start 
+//drv add by lipengpeng 20230830 start
 #if defined(IMX350GMS_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX350GMS_MIPI_RAW,
@@ -288,7 +316,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
-//drv add by lipengpeng 20230830 end 
+//drv add by lipengpeng 20230830 end
 #if defined(IMX351_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX351_MIPI_RAW,
@@ -307,6 +335,21 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 #if defined(IMX351GMS_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX351GMS_MIPI_RAW,
+		{
+			{PDN, Vol_Low, 0},
+			{RST, Vol_Low, 0},
+			{AVDD, Vol_2800, 0},
+			{DOVDD, Vol_1800, 0},
+			{DVDD, Vol_1200, 5},
+			{SensorMCLK, Vol_High, 5},
+			{PDN, Vol_High, 0},
+			{RST, Vol_High, 5}
+		},
+	},
+#endif
+#if defined(IMX351RT_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_IMX351RT_MIPI_RAW,
 		{
 			{PDN, Vol_Low, 0},
 			{RST, Vol_Low, 0},
@@ -1063,7 +1106,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
-//drv add by lipengpeng 20230731 start 
+//drv add by lipengpeng 20230731 start
 #if defined(OV50C40_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_OV50C40_MIPI_RAW,
@@ -1080,7 +1123,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 	},
 #endif
 
-//drv add by lipengpeng 20230731 end 
+//drv add by lipengpeng 20230731 end
 #if defined(OV24A1B_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_OV24A1B_MIPI_RAW,
@@ -1234,6 +1277,22 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 #if defined(IMX6862_MIPI_RAW)
 	{
 		SENSOR_DRVNAME_IMX6862_MIPI_RAW,
+		{
+			{RST, Vol_Low, 1},
+			{AVDD, Vol_2900, 0},
+		/*in alph.dts file, pin avdd controls two gpio pins*/
+			/*{AVDD_1, Vol_1800, 0},*/
+			{DVDD, Vol_1100, 0},
+			{AVDD, Vol_2800, 0},
+			{DOVDD, Vol_1800, 1},
+			{SensorMCLK, Vol_High, 1},
+			{RST, Vol_High, 1}
+		},
+	},
+#endif
+#if defined(IMX686RT_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_IMX686RT_MIPI_RAW,
 		{
 			{RST, Vol_Low, 1},
 			{AVDD, Vol_2900, 0},
@@ -1575,17 +1634,31 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 #endif
 #if defined(OV16A1Q_MIPI_RAW)
-	{
-		SENSOR_DRVNAME_OV16A1Q_MIPI_RAW,
+	#ifdef spin
 		{
-			{SensorMCLK, Vol_High, 0},
-			{RST, Vol_Low, 0},
-			{DOVDD, Vol_1800, 1},
-			{AVDD, Vol_2800, 1},
-			{DVDD, Vol_1200, 5},
-			{RST, Vol_High, 2}
+			SENSOR_DRVNAME_OV16A1Q_MIPI_RAW,
+			{
+				{RST, Vol_Low, 5},
+				{DOVDD, Vol_1800, 1},
+				{AVDD, Vol_2800, 1},
+				{DVDD, Vol_1200, 1},
+				{SensorMCLK, Vol_High, 5},
+				{RST, Vol_High, 5}
+			},
 		},
-	},
+	#else
+		{
+			SENSOR_DRVNAME_OV16A1Q_MIPI_RAW,
+			{
+				{SensorMCLK, Vol_High, 0},
+				{RST, Vol_Low, 0},
+				{DOVDD, Vol_1800, 1},
+				{AVDD, Vol_2800, 1},
+				{DVDD, Vol_1200, 5},
+				{RST, Vol_High, 2}
+			},
+		},
+	#endif
 #endif
 #if defined(S5K4H7YX_MIPI_RAW)
 	{
@@ -1627,7 +1700,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 			{DOVDD, Vol_1800, 0},
 			{AVDD, Vol_2800, 5},
 			{SensorMCLK, Vol_High, 1},
-			{PDN, Vol_High, 2}
+			{PDN, Vol_High, 2},
 		},
 	},
 #endif
@@ -1705,7 +1778,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 #endif
 /*prize add by zhuzhengjaing end*/
 
-//drv add by lipengpeng 20230713 start 
+//drv add by lipengpeng 20230713 start
 
 #if defined(HI847_MIPI_RAW)
 	{SENSOR_DRVNAME_HI847_MIPI_RAW,
@@ -1719,6 +1792,22 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 			{PDN, Vol_High, 0},
 			{RST, Vol_Low, 0},
 			{RST, Vol_High, 5},
+		},
+	},
+#endif
+
+#if defined(SC800CS_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_SC800CS_MIPI_RAW,
+		{
+			{SensorMCLK, Vol_High, 1},
+			{DOVDD, Vol_1800, 1},
+			{DVDD, Vol_1200, 1},
+			{AVDD, Vol_2800, 5},
+			{PDN, Vol_Low, 0},
+			{PDN, Vol_High, 5},
+			{RST, Vol_Low, 0},
+			{RST, Vol_High, 1},
 		},
 	},
 #endif
@@ -1820,7 +1909,84 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
-//drv add by lipengpeng 20230713 end 
+#if defined(S5KGN1SPGMS_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_S5KGN1SPGMS_MIPI_RAW,
+		{
+			{PDN, Vol_Low, 0},
+			{RST, Vol_Low, 1},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1100, 0},
+			{PDN, Vol_High, 0},
+			{RST, Vol_High, 2},
+			{SensorMCLK, Vol_High, 5},
+		},
+	},
+#endif
+#if defined(S5KHP3SP_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_S5KHP3SP_MIPI_RAW,
+		{
+			{PDN, Vol_Low, 0},
+			{RST, Vol_Low, 1},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 0},
+			{DVDD, Vol_1100, 0},
+			{PDN, Vol_High, 0},
+			{RST, Vol_High, 2},
+			{SensorMCLK, Vol_High, 5},
+		},
+	},
+#endif
+
+#if defined(OV9281_MIPI_RAW)
+  			{
+  				SENSOR_DRVNAME_OV9281_MIPI_RAW,
+ 				{
+ 					{SensorMCLK, Vol_High, 0},
+ 					{PDN, Vol_High, 1},
+  					{RST, Vol_High, 5},
+					{AVDD, Vol_2800, 5},
+ 					{DOVDD, Vol_1800, 8},
+ 					{DVDD, Vol_1200, 5},
+ 					{RST, Vol_High, 20}
+				},
+			},
+#endif
+#if defined(GC5035_MIPI_RAW)
+                {
+                    SENSOR_DRVNAME_GC5035_MIPI_RAW,
+                    {
+						{SensorMCLK, Vol_High, 0},
+						{PDN, Vol_Low, 0},
+						{RST, Vol_Low, 0},
+						{DOVDD, Vol_1800, 0},
+						{AVDD, Vol_2800, 0},
+						{DVDD, Vol_1200, 2},
+			//			{AFVDD, Vol_2800, 1},
+						{RST, Vol_High, 2},
+						{PDN, Vol_High, 5},
+                    },
+                },
+#endif
+
+#if defined(IMX520_MIPI_RAW)
+	{
+		SENSOR_DRVNAME_IMX520_MIPI_RAW,
+		{
+			{PDN, Vol_Low, 0},
+			{RST, Vol_Low, 0},
+			{AVDD, Vol_2800, 0},
+			{DOVDD, Vol_1800, 1},
+			{DVDD, Vol_1200, 0},
+			{SensorMCLK, Vol_High, 5},
+			{PDN, Vol_High, 0},
+			{RST, Vol_High, 1}
+		},
+	},
+#endif
+//drv add by lipengpeng 20230713 end
 	/* add new sensor before this line */
 	{NULL,},
 };
