@@ -180,12 +180,12 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	panel1@0 {
-		compatible = "Raydium,rm692e5,cmd";
+		compatible = "Viewtrix,vtdr6126,vdo";
 		reg = <0>;
 		pm-enable-gpios = <&pio 107 0>;
 		reset-gpios = <&pio 40 0>;
-		bias-gpios = <&pio 16 0>,
-			<&pio 35 0>;
+		bias-gpios = <&pio 35 0>,
+			<&pio 16 0>;
 		pinctrl-names = "default";
 		port {
 			panel_in1: endpoint {
@@ -629,12 +629,34 @@
 		};
 	};
 };
+
+&charger {
+	enable_pe_2;
+};
+
+&tboard_thermistor5 {
+	status = "okay";
+};
+
+&tboard_thermistor6 {
+	status = "okay";
+};
+
+&u2port0 {
+	/* Pri X91NF-4 modified by allen, 20240913, start */
+	mediatek,eye-term = <4>; /* 0~7 */
+	mediatek,host-eye-term = <4>; /* 0~7 */
+	mediatek,host-eye-rev6 = <3>; /* 0~3 */
+	/* Pri X91NF-4 modified by allen, 20240913, end */
+};
+
 /* prize-add-durunshen-20221021-end */
-#include "zahedan/cust.dtsi"
-#include "mediatek/cust_zahedan_touch_1080x2400.dtsi"
-#include "mediatek/cust_zahedan_camera.dtsi"
+#include "mediatek/samsung_nfc_s3nrn4vx.dtsi"
+#include "spin/cust.dtsi"
+#include "mediatek/cust_spin_touch_1080x2400.dtsi"
+#include "mediatek/cust_spin_camera.dtsi"
 #ifdef CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT
-#include "mediatek/mtk_pe50.dtsi"
+#include "mediatek/mtk_pe50_spin.dtsi"
 #endif
 /*End of this file, DO NOT ADD ANYTHING HERE*/
 

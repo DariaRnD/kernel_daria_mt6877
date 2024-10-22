@@ -1,0 +1,108 @@
+&i2c7 {
+	upm6722-charger@65{
+		compatible = "unisemipower,upm6722-standalone";
+		status = "okay";
+		reg = <0x65>;
+		upm6722,irq-gpio = <&pio 23 0>;
+		chg_name = "primary_divider_chg";
+		// upm6722,bat-ovp-disable;
+		// upm6722,bat-ocp-disable;
+		// upm6722,bus-ucp-disable;
+		// upm6722,bus-rcp-disable;
+		// upm6722,vout-ovp-disable;
+		// upm6722,tdie-flt-disable;
+		upm6722,tsbus-flt-disable;
+		upm6722,tsbat-flt-disable;
+		upm6722,wdt-disable;
+		// upm6722,vbus-errhi-disable;
+
+		upm6722,bat-ovp-threshold = <4525>;			/* unit: 1mV */
+		upm6722,bat-ocp-threshold = <8200>;			/* unit: 1mA */
+		upm6722,bus-ovp-threshold = <12000>;		/* unit: 1mV */
+		upm6722,bus-ocp-threshold = <5100>;			/* unit: 1mA */
+		upm6722,bus-ucp-threshold = <250>;			/* unit: 1mA */
+		upm6722,bus-rcp-threshold = <300>;			/* unit: 1mA */
+		upm6722,vac1-ovp-threshold = <18000>;		/* unit: 1mV */
+		upm6722,vac2-ovp-threshold = <18000>;		/* unit: 1mV */
+		upm6722,vout-ovp-threshold = <5000>;		/* unit: 1mV */
+		upm6722,tdie-flt-threshold = <140>;			/* unit: 1℃ */
+		upm6722,tsbus-flt-threshold = <4102>;		/* unit: 0.001% */
+		upm6722,tsbat-flt-threshold = <4102>;		/* unit: 0.001% */
+
+		// upm6722,bat-ovp-mask;
+		// upm6722,bat-ocp-mask;
+		// upm6722,bus-ovp-mask;
+		// upm6722,bus-ocp-mask;
+		// upm6722,bus-ucp-mask;
+		// upm6722,bus-rcp-mask;
+		// upm6722,vout-ovp-mask;
+		// upm6722,vac1-ovp-mask;
+		// upm6722,vac2-ovp-mask;
+
+		// upm6722,vout-present-mask;
+		// upm6722,vac1-present-mask;
+		// upm6722,vac2-present-mask;
+		// upm6722,vbus-present-mask;
+		// upm6722,acrb1-config-mask;
+		// upm6722,acrb2-config-mask;
+		// upm6722,cfly-short-mask;
+		// upm6722,adc-done-mask;
+		// upm6722,ss-timeout-mask;
+		// upm6722,tsbus-flt-mask;
+		// upm6722,tsbat-flt-mask;
+		// upm6722,tdie-flt-mask;
+		// upm6722,wd-mask;
+		// upm6722,regn-good-mask;
+		// upm6722,conv-active-mask;
+		// upm6722,vbus-errhi-mask;
+
+		// upm6722,bat-ovp-alm-disable;
+		// upm6722,bat-ocp-alm-disable;
+		// upm6722,bat-ucp-alm-disable;
+		// upm6722,bus-ovp-alm-disable;
+		// upm6722,tdie-alm-disable;
+
+		upm6722,bat-ovp-alm-threshold = <4510>;		/* unit: 1mV */
+		upm6722,bat-ocp-alm-threshold = <8000>;		/* unit: 1mA */
+		upm6722,bat-ucp-alm-threshold = <0>;		/* unit: 1mA */
+		upm6722,bus-ovp-alm-threshold = <11800>;	/* unit: 1mV */
+		upm6722,bus-ocp-alm-threshold = <5000>;		/* unit: 1mA */
+		upm6722,tdie-alm-threshold = <125>;			/* unit: 1℃ */
+
+		// upm6722,bat-ovp-alm-mask;
+		// upm6722,bat-ocp-alm-mask;
+		// upm6722,bat-ucp-alm-mask;
+		// upm6722,bus-ovp-alm-mask;
+		// upm6722,bus-ocp-alm-mask;
+		// upm6722,tsbus-tsbat-alm-mask;
+		// upm6722,tdie-alm-mask;
+
+		// upm6722,bus-pulldown-en;
+		// upm6722,vac1-pulldown-en;
+		// upm6722,vac2-pulldown-en;
+
+		upm6722,sense-resistor-mohm = <5>;	/* unit: 1mohm */
+		upm6722,ss-timeout = <10000>;		/* unit: 1ms */
+		upm6722,wdt-set = <30000>;			/* unit: 1ms */
+		upm6722,chg-config-1 = <1>;
+		upm6722,fsw-set = <5>;				/*0:230K 1:310K 2:370K 3:460K 4:610K 5:970k*/
+		upm6722,freq-shift = <0>;
+		upm6722,ibus-ucp-fall-dg-sel = <0>;
+
+		upm6722,adc-enable;
+		upm6722,adc-rate = <0>;
+		upm6722,adc-avg = <0>;
+		upm6722,adc-avg-init = <0>;
+		upm6722,adc-sample-bit = <0>;
+		// upm6722,ibus-adc-disable;
+		// upm6722,vbus-adc-disable;
+		// upm6722,vac1-adc-disable;
+		// upm6722,vac2-adc-disable;
+		// upm6722,vout-adc-disable;
+		// upm6722,vbat-adc-disable;
+		// upm6722,ibat-adc-disable;
+		// upm6722,tsbus-adc-disable;
+		// upm6722,tsbat-adc-disable;
+		// upm6722,tdie-adc-disable;
+	};
+};

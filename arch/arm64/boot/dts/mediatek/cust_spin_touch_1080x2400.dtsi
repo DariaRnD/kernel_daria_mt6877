@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2021 MediaTek Inc.
+ */
+
+/* TOUCH start */
+&spi1 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+    focaltech@0 {
+    	status = "okay";
+        compatible = "focaltech,fts";
+        reg = <0x0>;
+        vdd-supply = <&mt_pmic_vtp_ldo_reg>;
+        spi-max-frequency = <6000000>;
+        interrupt-parent = <&pio>;
+        interrupts = <14 IRQ_TYPE_EDGE_FALLING 14 0>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&ctp_spi_mode>;
+        focaltech,reset-gpio = <&pio 15 0>;
+        focaltech,irq-gpio = <&pio 14 02>;
+        focaltech,max-touch-number = <10>;
+        focaltech,display-coords =  <0 0 1080 2436>;
+    };
+};
+&pio {
+	ctp_spi_mode:ctp_spi_mode{
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO182__FUNC_SPI1_CLK>,
+				<PINMUX_GPIO183__FUNC_SPI1_CSB>,
+				<PINMUX_GPIO184__FUNC_SPI1_MI>,
+				<PINMUX_GPIO185__FUNC_SPI1_MO>;
+			drive-strength = <4>;
+		};
+	};
+};
+
+/* TOUCH end */

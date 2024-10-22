@@ -5018,6 +5018,22 @@
 		io-channel-names = "thermistor-ch2";
 	};
 
+	/* pri added for adapted  ntc by lurongzhe start */
+	tboard_thermistor5: thermal-sensor5 {
+		compatible = "mediatek,mtboard-thermistor5";
+		io-channels = <&auxadc 4>;
+		io-channel-names = "thermistor-ch4";
+		status = "disabled";
+	};
+
+	tboard_thermistor6: thermal-sensor6 {
+		compatible = "mediatek,mtboard-thermistor6";
+		io-channels = <&auxadc 5>;
+		io-channel-names = "thermistor-ch5";
+		status = "disabled";
+	};
+	/* pri added for adapted  ntc by lurongzhe end */
+
 	gps: gps@18C00000 {
 		compatible = "mediatek,mt6877-gps";
 		reg = <0 0x18000000 0 0x100000>,
@@ -6920,13 +6936,17 @@
 #ifdef CONFIG_MTK_ENABLE_GENIEZONE
 #include "mediatek/trusty.dtsi"
 #endif
-/*prize add by lvyuanchuan for 66w,20221019*/
+/*prize add by lvyuanchuan,20240820 start*/
 #ifdef CONFIG_CHARGER_SC8551
 #include "mediatek/sc8551.dtsi"
 #endif
-#ifdef CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT
-#include "mediatek/mtk_pe50.dtsi"
+#ifdef CONFIG_CHARGER_UPM6722
+#include "mediatek/upm6722.dtsi"
 #endif
+#ifdef CONFIG_SM5602_SUPPORT
+#include "mediatek/sm5602_fg.dtsi"
+#endif
+/*prize add by lvyuanchuan,20240820 end*/
 #ifdef CONFIG_RT_PROP_CHGALGO
 #include "mediatek/pca_pps_ta.dtsi"
 #endif

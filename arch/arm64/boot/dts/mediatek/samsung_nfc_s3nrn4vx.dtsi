@@ -1,0 +1,29 @@
+/*pri add for sansung nfc begin*/
+&i2c3 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+	sec-nfc@27 {
+		compatible = "sec-nfc";
+		reg = <0x27>;
+		sec-nfc,ven-gpio = <&pio 10 0>;
+		sec-nfc,firm-gpio = <&pio 8 0>;
+		sec-nfc,irq-gpio = <&pio 11 0xf>;
+#ifdef CONFIG_SEC_NFC_GPIO_CLK
+		sec-nfc,clk_req-gpio = <&pio 3 0>;
+#endif
+#ifdef CONFIG_SEC_NFC_PMIC_LDO
+		sec-nfc,pmic-ldo = "vdd_ldo20";
+#endif
+#ifdef CONFIG_SEC_NFC_DEDICATED_CLK
+		clkctrl-reg = <0x10e60a0c>;
+#endif
+#ifdef CONFIG_SEC_NFC_GPIO_CLK
+		clock-names = "OSC_NFC";
+		clocks = <&clock OSC_NFC>;
+#endif
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&xclkout1 &nfc_pd &nfc_clkreq>;
+	};
+};
+/*pri add for sansung nfc End*/
