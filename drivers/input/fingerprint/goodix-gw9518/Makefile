@@ -12,6 +12,11 @@ subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
 subdir-ccflags-y += -I$(srctree)/drivers/spi/mediatek/$(MTK_PLATFORM)
 
 include $(srctree)/drivers/tee/teei/Makefile.include
+#pri add for trustonic tee begin
+ifeq ($(CONFIG_TRUSTONIC_TEE_SUPPORT),y)
+include $(srctree)/drivers/tee/gud/Makefile.include
+endif
+#pri add for trustonic tee end
 
 obj-y	+= gf_tee.o
 #gf_tee-y := gf_spi_tee.o gf_spi_factory.o

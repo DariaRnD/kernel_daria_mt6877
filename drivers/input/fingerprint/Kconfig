@@ -65,6 +65,20 @@ if MTK_FINGERPRINT_SELECT = "gw9518"
      default y
      ---help---
      Goodix Fingerprint chip GW9518  TEE driver
+
+choice
+	prompt "Fingerprint sensor type"
+	depends on GOODIX_GW9518_FINGERPRINT
+	default GOODIX_SENSOR_TYPE_GW9578
+
+config GOODIX_SENSOR_TYPE_GW9578
+	bool "GW9578"
+
+config GOODIX_SENSOR_TYPE_GW9598
+	bool "GW9598"
+
+endchoice
+
 endif
 
 #prize-add-pengzhipeng-20191105-start
