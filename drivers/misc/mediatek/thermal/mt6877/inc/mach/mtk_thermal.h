@@ -174,6 +174,11 @@ extern void mtkTTimer_start_timer(void);
 
 extern int mtkts_bts_get_hw_temp(void);
 
+#ifdef CONFIG_CHARGER_SPIN
+/* pri modified for adapted btsn77 ntc by lurongzhe at 2024/9/13 */
+extern int mtkts_btsn77pa_get_hw_temp(void);
+#endif
+
 extern int get_immediate_ts0_wrap(void);
 extern int get_immediate_ts1_wrap(void);
 extern int get_immediate_ts2_wrap(void);

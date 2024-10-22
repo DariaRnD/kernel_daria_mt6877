@@ -10,19 +10,26 @@
 #define APPLY_PRECISE_NTC_TABLE
 #define APPLY_AUXADC_CALI_DATA
 
-#define AUX_IN5_NTC (5)
 /* 390K, pull up resister */
 #define BTSCHARGER_RAP_PULL_UP_R		100000 /* 100K, pull up resister */
 /* base on 100K NTC temp
  * default value -40 deg
  */
+#ifdef CONFIG_CHARGER_SPIN
+#define BTSCHARGER_TAP_OVER_CRITICAL_LOW	2197860 /* base on 100K NTC temp*/
+#else
 #define BTSCHARGER_TAP_OVER_CRITICAL_LOW	4397119 /* base on 100K NTC temp*/
+#endif
 /* 1.8V ,pull up voltage */
 #define BTSCHARGER_RAP_PULL_UP_VOLTAGE	1800
 /* default is NCP15WF104F03RC(100K) */
 #define BTSCHARGER_RAP_NTC_TABLE		7
 
-#define BTSCHARGER_RAP_ADC_CHANNEL		AUX_IN5_NTC /* default is 2 */
+#ifdef CONFIG_CHARGER_SPIN
+#define BTSCHARGER_RAP_ADC_CHANNEL		(4) /* default is 2 */
+#else
+#define BTSCHARGER_RAP_ADC_CHANNEL		(5) /* default is 2 */
+#endif
 extern int IMM_GetOneChannelValue(int dwChannel, int data[4], int *rawdata);
 extern int IMM_IsAdcInitReady(void);
 
