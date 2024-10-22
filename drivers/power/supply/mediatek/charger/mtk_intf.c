@@ -240,13 +240,3 @@ int wake_up_charger(void)
 
 	return 0;
 }
-
-/*prize add by lvyuanchuan for limiting the input charging current at screen on, 20221129 start*/
-int charger_is_screenBlank(void)
-{
-	if(pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK_APDO){
-		return pinfo->is_screenon;
-	}
-	return false;
-}
-/*prize add by lvyuanchuan for limiting the input charging current at screen on, 20221129 end*/

@@ -36,9 +36,17 @@
 #define DV2_DVCHG_VBUSALM_GAP	100	/* mV */
 #define DV2_DVCHG_STARTUP_CONVERT_RATIO		210	/* % */
 #define DV2_DVCHG_CHARGING_CONVERT_RATIO	202	/* % */
+/* pri X91NF-54 add by allen 202400924 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+#define DV2_VBUSOVP_RATIO	150
+#define DV2_IBUSOCP_RATIO	150
+#define DV2_VBATOVP_RATIO	120
+#else
 #define DV2_VBUSOVP_RATIO	110
 #define DV2_IBUSOCP_RATIO	110
 #define DV2_VBATOVP_RATIO	110
+#endif
+/* pri X91NF-54 add by allen 202400924 end*/
 #define DV2_IBATOCP_RATIO   150
 #define DV2_ITAOCP_RATIO	110
 #define DV2_IBUSUCPF_RECHECK	250	/* mA */
@@ -59,6 +67,14 @@
 
 #define DV2_RESET_NOTIFY \
 	(BIT(PCA_NOTIEVT_DETACH) | BIT(PCA_NOTIEVT_HARDRESET))
+
+/* pri add by lvyuanchuan 20240820 begin */
+#ifdef CONFIG_CHARGER_SPIN
+#define MAX_PROFILE_TABLE               5
+#define MAX_TEMP_TABLE                  5
+#define MAX_PROPS_NAME_LEN              50
+#endif
+/* pri add by lvyuanchuan 20240820 end*/
 
 enum dv2_algo_state {
 	DV2_ALGO_INIT = 0,
@@ -96,6 +112,27 @@ enum dv2_dvchg_role {
 	DV2_DVCHG_SLAVE,
 	DV2_DVCHG_MAX,
 };
+
+#ifdef CONFIG_CHARGER_SPIN
+/* pri add by lvyuanchuan 20240820 begin */
+struct profile_t {
+	u32 voltage;
+	u32 ibatmax;
+};
+
+struct jeita_table_t {
+	int pro_nums;
+	struct profile_t profile[MAX_PROFILE_TABLE];
+};
+
+struct bat_jeita_t {
+	u32 active_table_number;
+	u32 bat_id;
+	u32 temperature_table[MAX_TEMP_TABLE];
+	struct jeita_table_t jeita_table[MAX_TEMP_TABLE];
+};
+/* pri add by lvyuanchuan 20240820 end */
+#endif
 
 static const char *const __dv2_dvchg_role_name[DV2_DVCHG_MAX] = {
 	"master", "slave",
@@ -155,6 +192,10 @@ struct dv2_algo_desc {
 	const char **support_ta;	/* supported ta name */
 	u32 support_ta_cnt;		/* supported ta count */
 	bool allow_not_check_ta_status;	/* allow not to check ta status */
+	/* pri add by lvyuanchuan 20240820 */
+#ifdef CONFIG_CHARGER_SPIN
+	struct bat_jeita_t jeita;  /* battery jeita's param */
+#endif
 };
 
 /* Algorithm related information */
@@ -846,6 +887,53 @@ static inline void __dv2_calculate_vbat_ircmp(struct dv2_algo_info *info)
 		 data->vbat_ircmp, desc->ircmp_vclamp, ibat, data->r_bat);
 }
 
+/* pri add by lvyuanchuan 20240820 begin */
+#ifdef CONFIG_CHARGER_SPIN
+static inline int __dv2_check_jeita_lmt(int vol , struct jeita_table_t *jeita_table)
+{
+	u8 i = 0;
+
+	if(!jeita_table)
+		return -1;
+	for (i = 0; i < jeita_table->pro_nums; i++) {
+		if (vol && (vol < jeita_table->profile[i].voltage)) {
+			break;
+		}
+	}
+	return jeita_table->profile[i].ibatmax / 2;
+}
+
+static inline int __dv2_select_jeita_lmt(struct dv2_algo_info *info)
+{
+	int vbat = 0,jeita_lmt = -1;
+	struct dv2_algo_desc *desc = info->desc;
+	struct dv2_algo_data *data = info->data;
+
+	vbat = battery_get_bat_voltage();
+
+	switch (data->tbat_level) {
+	case DV2_THERMAL_COOL:
+		jeita_lmt = __dv2_check_jeita_lmt(vbat, &desc->jeita.jeita_table[0]);
+		break;
+	case DV2_THERMAL_NORMAL:
+		jeita_lmt = __dv2_check_jeita_lmt(vbat, &desc->jeita.jeita_table[0]);
+		break;
+	case DV2_THERMAL_WARM:
+		jeita_lmt = __dv2_check_jeita_lmt(vbat, &desc->jeita.jeita_table[1]);
+		break;
+	case DV2_THERMAL_VERY_WARM:
+		jeita_lmt = __dv2_check_jeita_lmt(vbat, &desc->jeita.jeita_table[1]);
+		break;
+	default:
+		PCA_ERR("tbat is too cold or high!\n");
+		break;
+	}
+	PCA_INFO("(vbat,tbat_level)(%d,%d),jeita_lmt(%d)\n", vbat, data->tbat_level, jeita_lmt);
+	return jeita_lmt;
+}
+#endif
+/* pri add by lvyuanchuan 20240820 end */
+
 static inline void __dv2_select_vbat_cv(struct dv2_algo_info *info)
 {
 	int ret;
@@ -892,6 +980,40 @@ out:
  * 5. Battery's temperature
  * 6. Divider charger's temperature
  */
+#ifdef CONFIG_CHARGER_SPIN
+static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
+{
+	struct dv2_algo_data *data = info->data;
+	struct dv2_algo_desc *desc = info->desc;
+	u32 ita = data->ita_lmt;
+	/*prize add by lvyuanchuan,20240820 start*/
+	const u32 ita_lmt = data->ita_lmt;
+	int jeita_lmt = -1;
+
+	mutex_lock(&data->ext_lock);
+	if (data->thermal_throttling >= 0)
+		ita = min_t(u32, ita, data->thermal_throttling);
+	if (data->ita_pwr_lmt > 0)
+		ita = min(ita, data->ita_pwr_lmt);
+
+	jeita_lmt = __dv2_select_jeita_lmt(info);
+	if (jeita_lmt > 0)
+		ita = min_t(u32, ita, jeita_lmt);
+
+	ita = min(ita, ita_lmt - desc->tta_curlmt[data->tta_level]);
+	ita = min(ita, ita_lmt - desc->tbat_curlmt[data->tbat_level]);
+	ita = min(ita, ita_lmt - desc->tdvchg_curlmt[data->tdvchg_level]);
+
+	PCA_INFO("ita(org,tta,tbat,tdvchg,prlmt,throt,jeita)=%d(%d,%d,%d,%d,%d,%d,%d)\n",
+		 ita, ita_lmt, desc->tta_curlmt[data->tta_level],
+		 desc->tbat_curlmt[data->tbat_level],
+		 desc->tdvchg_curlmt[data->tdvchg_level], data->ita_pwr_lmt,
+		 data->thermal_throttling, jeita_lmt);
+	/*prize add by lvyuanchuan,20240820 end*/
+	mutex_unlock(&data->ext_lock);
+	return ita;
+}
+#else
 static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
 {
 	struct dv2_algo_data *data = info->data;
@@ -974,6 +1096,7 @@ static inline int __dv2_get_ita_lmt(struct dv2_algo_info *info)
 	mutex_unlock(&data->ext_lock);
 	return ita;
 }
+#endif
 
 static inline int __dv2_get_idvchg_lmt(struct dv2_algo_info *info)
 {
@@ -2473,6 +2596,9 @@ static int __dv2_algo_ss_dvchg_with_ta_cv(struct dv2_algo_info *info)
 	struct dv2_algo_desc *desc = info->desc;
 	struct prop_chgalgo_ta_auth_data *auth_data = &data->ta_auth_data;
 	u32 idvchg_lmt, vta, ita, delta_time;
+#ifdef CONFIG_CHARGER_SPIN
+	u32 vstep_cnt;
+#endif
 	u32 ita_gap_per_vstep = data->ita_gap_per_vstep > 0 ?
 				data->ita_gap_per_vstep :
 				auth_data->ita_gap_per_vstep;
@@ -2589,9 +2715,19 @@ cc_cv:
 	    vta == auth_data->vcap_max)
 		data->state = DV2_ALGO_CC_CV;
 	else {
+		/* pri X91NF-48 add by allen 202400923 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+		vstep_cnt = precise_div(idvchg_lmt - data->ita_measure,
+					3 * ita_gap_per_vstep);
+		vta += auth_data->vta_step * (vstep_cnt + 1);
+		vta = min(vta, (u32)auth_data->vcap_max);
+		ita += ita_gap_per_vstep * (vstep_cnt + 1);
+#else
+		/* pri X91NF-48 add by allen 202400923 end*/
 		vta += auth_data->vta_step;
 		vta = min_t(u32, vta, auth_data->vcap_max);
 		ita += ita_gap_per_vstep;
+#endif
 		ita = min(ita, idvchg_lmt);
 	}
 
@@ -3261,16 +3397,29 @@ static bool __dv2_check_tbat_level(struct dv2_algo_info *info,
 				   struct dv2_stop_info *sinfo)
 {
 	int ret, tbat;
+	/* pri modify by lvyuanchuan 20240820 begin */
+	/*
+	 *15(very_cold) 15(cold) 15(very_cool) 15(cool) 15(normal) 35(warm) 45(very_warm) 45(hot) 45(very_hot)
+	 *-1 : invalid temperature point
+	 * 1 : effective temperature point
+	*/
+#ifdef CONFIG_CHARGER_SPIN
+	int tbat_curlmt[DV2_THERMAL_MAX]={-1, -1, -1, -1, 1, 1, 1, -1, -1};
+#endif
 	struct dv2_algo_data *data = info->data;
 	struct dv2_algo_desc *desc = info->desc;
 	struct dv2_thermal_data tdata = {
 		.name = "tbat",
 		.temp_level_def = desc->tbat_level_def,
+#ifdef CONFIG_CHARGER_SPIN
+		.curlmt = tbat_curlmt,
+#else
 		.curlmt = desc->tbat_curlmt,
+#endif
 		.temp_level = &data->tbat_level,
 		.recovery_area = desc->tbat_recovery_area,
 	};
-
+	/* pri modify by lvyuanchuan 20240820 end */
 	ret = __dv2_get_adc(info, PCA_ADCCHAN_TBAT, &tbat);
 	if (ret < 0) {
 		PCA_ERR("get tbat fail(%d)\n", ret);
@@ -3698,7 +3847,11 @@ static int __dv2_post_handle_notify_evt(struct dv2_algo_info *info)
 static int __dv2_algo_check_charing_status(struct dv2_algo_info *info)
 {
 	int ret, i;
+#ifdef CONFIG_CHARGER_SPIN
+	bool pump_chg_en[DV2_DVCHG_MAX]={true,false};
+#else
 	bool pump_chg_en[DV2_DVCHG_MAX]={true,true};
+#endif
 	struct dv2_algo_data *data = info->data;
 
 	if(data->state != DV2_ALGO_CC_CV)
@@ -4262,6 +4415,105 @@ static const char * const __dv2_dev_node_name[] = {
 	"mtk_pe50",
 };
 
+/* pri add by lvyuanchuan 20240820 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+static void parse_custom_jeita_table(const struct device_node *np,
+		const char *node_srting, int *profile_nums,
+		struct profile_t *profile, int saddles, int column)
+{
+	u32 nums = 0;
+	u32 idx = 0;
+	u32 voltage = 0;
+	u32 ibatmax = 0;
+	struct profile_t *profile_p;
+	int s_len = strnlen(node_srting, MAX_PROPS_NAME_LEN);
+	char temp[MAX_PROPS_NAME_LEN+1] = {0};
+
+	idx = 0;
+	strncpy(temp, node_srting, s_len + 1);
+	profile_p = profile;
+
+	while (!of_property_read_u32_index(np, temp, idx, &voltage)) {
+		idx++;
+		of_property_read_u32_index(np, temp, idx, &ibatmax);
+		idx++;
+
+		PCA_INFO("voltage: %d mv, ibatmax: %d ma\n", voltage, ibatmax);
+
+		profile_p->voltage = voltage;
+		profile_p->ibatmax = ibatmax;
+		if (voltage)
+			nums++;
+
+		profile_p++;
+
+		if (idx >= (saddles * column))
+			break;
+	}
+
+	if (idx == 0) {
+		PCA_ERR("cannot find %s in dts\n", node_srting);
+	}
+	PCA_INFO(" profile_nums: %d\n", nums);
+	*profile_nums = nums;
+	return;
+}
+
+void dv2_init_jeita_from_dts(struct dv2_algo_info *info)
+{
+	int i;
+	int bat_id;
+	int ret;
+	int active_tab_num = 0;
+	int profile_nums = 0;
+	struct dv2_algo_desc *desc;
+	struct device_node *np ;
+	char node_name[MAX_PROPS_NAME_LEN+1];
+
+	if(IS_ERR_OR_NULL(info))
+		return;
+	desc = info->desc;
+	if(IS_ERR_OR_NULL(desc))
+		return;
+
+	for (i = 0; i < ARRAY_SIZE(__dv2_dev_node_name); i++) {
+		np = of_find_node_by_name(NULL, __dv2_dev_node_name[i]);
+		if (np) {
+			PCA_ERR("find node %s\n", __dv2_dev_node_name[i]);
+			break;
+		}
+	}
+	if (i == ARRAY_SIZE(__dv2_dev_node_name)) {
+		PCA_ERR("no device node found\n");
+		return;
+	}
+	ret = of_property_read_u32_array(np, "tbat-grade-def",
+  			(u32 *)desc->jeita.temperature_table, MAX_TEMP_TABLE);
+	if (ret < 0)
+  			PCA_ERR("get tbat-grade-def fail\n");
+	for (i = 0; i < MAX_TEMP_TABLE; i++) {
+		PCA_INFO("temperature_table[%d]: %d\n", i, desc->jeita.temperature_table[i]);
+		if (desc->jeita.temperature_table[i] > 0)
+			active_tab_num++;
+	}
+	PCA_INFO("active_tab_num %d\n", active_tab_num);
+	if (active_tab_num)
+		desc->jeita.active_table_number = active_tab_num - 1;
+	/*Default supply bat0*/
+	bat_id = desc->jeita.bat_id = 0;
+	/*Default 5 rows and 2 columns*/
+	for (i = 0; i < desc->jeita.active_table_number; i++) {
+		ret = sprintf(node_name, "bat%d-profile-t%d", bat_id, i);
+		if (ret >= 0) {
+			parse_custom_jeita_table(np, node_name, &profile_nums,
+				desc->jeita.jeita_table[i].profile, MAX_PROFILE_TABLE, 2);
+			desc->jeita.jeita_table[i].pro_nums = profile_nums;
+		}
+	}
+}
+#endif
+/* pri add by lvyuanchuan 20240820 end*/
+
 static int dv2_parse_dt(struct dv2_algo_info *info)
 {
 	int i, ret;
@@ -4315,6 +4567,10 @@ static int dv2_parse_dt(struct dv2_algo_info *info)
 		desc->swchg_aicr = 0;
 		desc->swchg_ichg = 0;
 	}
+	/* pri add by lvyuanchuan 20240820 */
+#ifdef CONFIG_CHARGER_SPIN
+	dv2_init_jeita_from_dts(info);
+#endif
 	return 0;
 }
 

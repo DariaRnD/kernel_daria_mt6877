@@ -833,6 +833,17 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 
 	swchgalg->total_charging_time = charging_time.tv_sec;
 
+#ifdef CONFIG_CHARGER_SPIN
+	chr_err("pe50_ready:%d pps:%d hv:%d thermal:%d,%d tmp:%d sm:%d leave_pe5:%d\n",
+		info->enable_pe_5,
+		pe50_is_ready(),
+		info->enable_hv_charging,
+		info->chg1_data.thermal_charging_current_limit,
+		info->chg1_data.thermal_input_current_limit,
+		tmp,
+		info->sw_jeita.sm,
+		info->leave_pe5);
+#else
 	chr_err("pe40_ready:%d pps:%d hv:%d thermal:%d,%d tmp:%d,%d,%d,leave_pe5:%d\n",
 		info->enable_pe_4,
 		pe40_is_ready(),
@@ -843,6 +854,7 @@ static int mtk_switch_chr_cc(struct charger_manager *info)
 		info->data.high_temp_to_enter_pe40,
 		info->data.low_temp_to_enter_pe40,
 		info->leave_pe5);
+#endif
 
 	pdata = &info->chg1_data;
 	leave = pdata->user_input_current_limit > 0;
@@ -1007,42 +1019,43 @@ static int mtk_switch_charging_current(struct charger_manager *info)
 	return 0;
 }
 /*prize added by lvyuanchuan,X9-867,20230201 start*/
-static int mtk_switch_check_charging_safety(struct charger_manager *info)
+static int mtk_switch_check_pps_restore(struct charger_manager *info)
 {
 	struct switch_charging_alg_data *swchgalg = info->algorithm_data;
 	int temp = battery_get_bat_temperature();
-	int hwTemp = mtktspmic_get_hw_temp()/1000;
+	int hwTemp = mtktspmic_get_hw_temp() / 1000;
 	/*
-		 In the case of scenario throttling, 
+		 In the case of scenario throttling,
 		 the recovery fast charge abnormal recovery mechanism is not triggered
 	*/
-	if(info->chg_scenario){
-		chr_err("[%s][chg_scenario][temp]:(%d,%d),sm:[%d] ,state:[%d] ,error_cp_recovery_flag[%d],enable_hv_charging[%d]\n",
-		__func__,temp,hwTemp,info->sw_jeita.sm, swchgalg->state,info->sw_jeita.error_cp_recovery_flag,info->enable_hv_charging);
-		return 0;	
-	}
-	/*Temp:10~45 && cmd_discharging == false*/
-	if (info->enable_sw_jeita && mtk_is_TA_support_pd_pps(info) && (!info->cmd_discharging)) {
-		if(info->sw_jeita.sm == TEMP_T2_TO_T3){
-			info->sw_jeita.error_cp_recovery_flag = true;
-			/*prize added by lvyuanchuan,X9-796,20230113*/
-			if((temp < info->data.temp_t3_thres_minus_x_degree) &&(hwTemp < 43)){
-				info->enable_hv_charging = true;
-			}
-		}
+	chr_err("[%s](Tbat,Tap):(%d,%d),sm:(%d),state:(%d),hv:(%d),cmd:(%d),cp_restore:(%d)\n",
+		__func__,
+		temp, hwTemp, info->sw_jeita.sm, swchgalg->state,
+		info->sw_jeita.error_cp_recovery_flag,
+		info->cmd_discharging,
+		info->enable_hv_charging);
 
-		if((info->sw_jeita.error_cp_recovery_flag == true) &&	(info->sw_jeita.sm != TEMP_T2_TO_T3)) {
+	if (info->chg_scenario ||
+			info->cmd_discharging ||
+			!info->enable_sw_jeita ||
+			!mtk_is_TA_support_pd_pps(info))
+		return 0;
+	/*Temp:10~45*/
+	if (info->sw_jeita.sm == TEMP_T2_TO_T3) {
+		info->sw_jeita.error_cp_recovery_flag = true;
+		/*prize added by lvyuanchuan,X9-796,20230113*/
+		if ((temp < info->data.temp_t3_thres_minus_x_degree) && (hwTemp < 43)) {
+			chr_err("[%s]Tbat is normal, using cp again!!",__func__);
+			info->enable_hv_charging = true;
+		}
+	} else {
+		if (info->sw_jeita.error_cp_recovery_flag) {
 			info->sw_jeita.error_cp_recovery_flag = false;
 			info->enable_hv_charging = false;
-		}
-
-		if (mtk_pe50_get_is_connect(info) && (!info->sw_jeita.error_cp_recovery_flag)){
-			chr_err("[%s]High Temp,not using cp!!",__func__);
+			chr_err("[%s]Tbat is abnormal, not using cp!!",__func__);
 			mtk_pe50_stop_algo(info, true);
 		}
 	}
-	chr_err("[%s][temp]:(%d,%d),sm:[%d] ,state:[%d] ,error_cp_recovery_flag[%d],enable_hv_charging[%d],cmd_discharging[%d]\n",
-	__func__,temp,hwTemp,info->sw_jeita.sm, swchgalg->state,info->sw_jeita.error_cp_recovery_flag,info->enable_hv_charging,info->cmd_discharging);
 	return 0;
 }
 /*prize added by lvyuanchuan,X9-867,20230201 end*/
@@ -1092,7 +1105,7 @@ static int mtk_switch_charging_run(struct charger_manager *info)
 		}
 	} while (ret != 0);
 	/*prize added by lvyuanchuan,X9-489,20221209*/
-	mtk_switch_check_charging_safety(info);
+	mtk_switch_check_pps_restore(info);
 	mtk_switch_check_charging_time(info);
 
 	charger_dev_dump_registers(info->chg1_dev);
@@ -1105,6 +1118,13 @@ static int charger_dev_event(struct notifier_block *nb,
 	struct charger_manager *info =
 			container_of(nb, struct charger_manager, chg1_nb);
 	struct chgdev_notify *data = v;
+	/*pri LAX-787 modify by lvyuanchuan 20240902 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+	int ret = 0;
+	union power_supply_propval val = {.intval = 0};
+	struct power_supply *psy = power_supply_get_by_name("charger");
+#endif
+	/*pri LAX-787 modify by lvyuanchuan 20240902 end*/
 
 	chr_info("%s %ld", __func__, event);
 
@@ -1114,7 +1134,18 @@ static int charger_dev_event(struct notifier_block *nb,
 		pr_info("%s: end of charge\n", __func__);
 		break;
 	case CHARGER_DEV_NOTIFY_RECHG:
-		charger_manager_notifier(info, CHARGER_NOTIFY_START_CHARGING);
+		/*pri LAX-787 modify by lvyuanchuan 20240902 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+		if (psy) {
+			ret = power_supply_get_property(psy,
+						POWER_SUPPLY_PROP_CHARGE_TYPE,
+						&val);
+		}
+
+		if (val.intval != CHARGER_UNKNOWN)
+#endif
+		/*pri LAX-787 modify by lvyuanchuan 20240902 end*/
+			charger_manager_notifier(info, CHARGER_NOTIFY_START_CHARGING);
 		pr_info("%s: recharge\n", __func__);
 		break;
 	case CHARGER_DEV_NOTIFY_SAFETY_TIMEOUT:

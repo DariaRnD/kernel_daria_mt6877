@@ -2912,6 +2912,17 @@ static ssize_t show_Pump_Express(struct device *dev,
 		pinfo->data.ta_start_battery_soc,
 		pinfo->data.ta_stop_battery_soc);
 
+	/* pri X91NF-15 add by allen 202400923 begin*/
+#ifdef CONFIG_CHARGER_SPIN
+	if ((pinfo->chr_type == STANDARD_CHARGER) &&
+			(pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK_APDO ||
+			pinfo->pd_type == MTK_PD_CONNECT_PE_READY_SNK_PD30)) {
+		is_ta_detected = 1;
+		goto out;
+	}
+#endif
+	/* pri X91NF-15 add by allen 202400923 end*/
+
 	if (IS_ENABLED(CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT)) {
 		/* Is PE+50 connect */
 		if (mtk_pe50_get_is_connect(pinfo))
@@ -2939,10 +2950,14 @@ static ssize_t show_Pump_Express(struct device *dev,
 	if (mtk_is_TA_support_pd_pps(pinfo) == true || pinfo->is_pdc_run == true)
 		is_ta_detected = 1;
 
+#ifdef CONFIG_CHARGER_SPIN
+out:
+#endif
 	pr_debug("%s: detected = %d, pe20_connect = %d, pe_connect = %d,is_pdc_run = %d\n",
-		__func__, is_ta_detected,pinfo->is_pdc_run,
+		__func__, is_ta_detected,
 		mtk_pe20_get_is_connect(pinfo),
-		mtk_pe_get_is_connect(pinfo));
+		mtk_pe_get_is_connect(pinfo),
+		pinfo->is_pdc_run);
 
 	return sprintf(buf, "%u\n", is_ta_detected);
 }
@@ -3468,16 +3483,13 @@ static int mtk_charger_setup_files(struct platform_device *pdev)
 	ret = device_create_file(&(pdev->dev), &dev_attr_cmd_charge_disable);
 	if (ret)
 		goto _out;
+	//prize add by lvyuanchuan for controlling charger --end	
+	/* prize liuyong, add for otg on/off switch control, 20231012, start*/
+	ret = device_create_file(&(pdev->dev), &dev_attr_otg_en);
+	if (ret)
+		goto _out;
 	/* prize liuyong, add for otg on/off switch control, 20231012, end*/
 	ret = device_create_file(&(pdev->dev), &dev_attr_charging_scenario);
-	if (ret)
-		goto _out;
-	//prize add by lvyuanchuan for controlling charger --end	
-	ret = device_create_file(&(pdev->dev), &dev_attr_charging_scenario);
-	if (ret)
-		goto _out;
-	//prize add by lvyuanchuan for controlling charger --end	
-	ret = device_create_file(&(pdev->dev), &dev_attr_otg_en);
 	if (ret)
 		goto _out;
 	battery_dir = proc_mkdir("mtk_battery_cmd", NULL);
@@ -4544,7 +4556,7 @@ static int mtk_charger_probe(struct platform_device *pdev)
 	ret = fb_register_client(&charger_fb_notifier);
 	if (ret)
 		chr_err("[%s] failed to registe %d\n", __func__, ret);
-	/*prize add by lvyuanchuan for limiting the input charging current at screen on, 20221129 end*/			
+	/*prize add by lvyuanchuan for limiting the input charging current at screen on, 20221129 end*/
 
 	// drv add tankaikun, add factory charger class, 20240126 start
 	#if IS_ENABLED(CONFIG_FACTORY_CHARGE)

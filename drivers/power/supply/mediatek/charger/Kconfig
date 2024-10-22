@@ -266,3 +266,9 @@ config FACTORY_CHARGE
 	  Set to Yes if FACTORY CHARGE is used.
 # drv add by tankaikun, add factory charger class, 20231201 end
 
+config CHARGER_SPIN
+	bool "Build charger driver for spin"
+	depends on MTK_CHARGER
+	help
+	  Say Y here to enable required charger
+	  changes for spin.
