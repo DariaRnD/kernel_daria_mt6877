@@ -83,6 +83,12 @@ static struct stAF_OisPosInfo OisPosInfo;
 /* ------------------------- */
 
 static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
+	/*prize add by xiaguohong 20240912 start*/
+#ifdef CONFIG_MTK_LENS_PD9402A_SUPPORT
+	{1, AFDRV_PD9402A, PD9402A_SetI2Cclient, PD9402A_Ioctl,
+	 PD9402A_Release, PD9402A_GetFileName, NULL},
+#endif
+	/*prize add by xiaguohong 20240912 end*/
 	{1, AFDRV_DW9718TAF, DW9718TAF_SetI2Cclient, DW9718TAF_Ioctl,
 	 DW9718TAF_Release, DW9718TAF_GetFileName, NULL},
 	{1, AFDRV_AK7371AF, AK7371AF_SetI2Cclient, AK7371AF_Ioctl,
@@ -342,6 +348,9 @@ void AF_PowerDown(void)
 #endif
 #ifdef CONFIG_MTK_LENS_DW9781CAF_SUPPORT
 		DW9781CAF_PowerDown(g_pstAF_I2Cclient, &g_s4AF_Opened); /*prize add by zhuzhengjiang 20220318 start*/
+#endif
+#ifdef CONFIG_MTK_LENS_PD9402A_SUPPORT
+		PD9402A_PowerDown(g_pstAF_I2Cclient, &g_s4AF_Opened); /*prize add by zhuzhengjiang 20220318 start*/
 #endif
 	}
 	// MAIN2AF_PowerDown();

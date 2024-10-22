@@ -181,6 +181,24 @@ extern int FP5510FE4AF_Release(struct inode *a_pstInode,
 	struct file *a_pstFile);
 extern int FP5510FE4AF_GetFileName(unsigned char *pFileName);
 
+/*prize add by xiaguohong 20240912 start*/
+#ifdef CONFIG_MTK_LENS_PD9402A_SUPPORT
+#define PD9402A_SetI2Cclient PD9402A_SetI2Cclient_Main
+#define PD9402A_Ioctl PD9402A_Ioctl_Main
+#define PD9402A_Release PD9402A_Release_Main
+#define PD9402A_PowerDown PD9402A_PowerDown_Main
+#define PD9402A_GetFileName PD9402A_GetFileName_Main
+extern int PD9402A_SetI2Cclient(struct i2c_client *pstAF_I2Cclient,
+				 spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long PD9402A_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
+			   unsigned long a_u4Param);
+extern int PD9402A_Release(struct inode *a_pstInode, struct file *a_pstFile);
+extern int PD9402A_PowerDown(struct i2c_client *pstAF_I2Cclient,
+				int *pAF_Opened);
+extern int PD9402A_GetFileName(unsigned char *pFileName);
+#endif
+/*prize add by xiaguohong 20240912 end*/
+
 #ifdef CONFIG_MTK_LENS_DW9781CAF_SUPPORT
 #define DW9781CAF_SetI2Cclient DW9781CAF_SetI2Cclient_Main
 #define DW9781CAF_Ioctl DW9781CAF_Ioctl_Main

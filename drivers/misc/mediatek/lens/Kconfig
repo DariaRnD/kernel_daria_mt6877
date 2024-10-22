@@ -323,3 +323,12 @@ config MTK_LENS_DW9781CAF_SUPPORT
 	  lens driver for the camera sensor module
 	  Set as y if the driver is used in this project
 #/*prize  add  by zhuzhengjiang    20220318 end*/
+
+config MTK_LENS_PD9402A_SUPPORT
+	bool "PD9402A Lens Driver"
+	default n
+	help
+	  PD9402A Lens Driver
+	  This config is used to enable the corresponding
+	  lens driver for the camera sensor module
+	  Set as y if the driver is used in this project

@@ -77,6 +77,11 @@
 #define AFDRV_GT9772AF "GT9772AF"
 #define AFDRV_ZC535AF "ZC535AF"
 #define AFDRV_FP5510FE4AF "FP5510FE4AF"
+/*prize add by xiaguohong 20240912 start*/
+#ifdef CONFIG_MTK_LENS_PD9402A_SUPPORT
+#define AFDRV_PD9402A "PD9402A"
+#endif
+/*prize add by xiaguohong 20240912 end*/
 #ifdef CONFIG_MTK_LENS_DW9781CAF_SUPPORT
 #define AFDRV_DW9781CAF "DW9781CAF"
 #endif
