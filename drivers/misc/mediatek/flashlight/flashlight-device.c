@@ -137,7 +137,9 @@ const struct flashlight_device_id flashlight_id[] = {
 	const struct flashlight_device_id flashlight_id[] = {
 	/* {TYPE, CT, PART, "NAME", CHANNEL, DECOUPLE} */
 	{0, 0, 0, "flashlights-mt6360", 0, 1},
-//	{0, 1, 0, "flashlights-mt6370", 1, 0},
+#ifdef spin
+	{0, 1, 0, "flashlights-mt6360", 1, 0},
+#endif
 };
 // prize add by zhuzhengjiang for X9 single flash end
 #else
