@@ -76,3 +76,4 @@ obj-$(CONFIG_DRM_PANEL_NT36532_DSI_VDO_BOE_6382) += panel-nt36532-dsi-vdo-boe-63
 
 obj-$(CONFIG_DRM_PANEL_BOE_RM692E5_CMD) += panel-boe-rm692e5-cmd.o
 
+obj-$(CONFIG_DRM_PANEL_ML_VTDR6126_VDO) += panel-ml-vtdr6126-vdo.o

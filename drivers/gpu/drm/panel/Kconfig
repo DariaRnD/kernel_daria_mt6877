@@ -805,3 +805,14 @@ config DRM_PANEL_BOE_RM692E5_CMD
 	  fhdp cmd panel. The panel has a 1080x2400 resolution
 	  and uses 24-bits RGB per pixel. It provides a MIPI DSI
 	  interface to host.
+
+config DRM_PANEL_ML_VTDR6126_VDO
+	tristate "ml vtdr6126 fhdp video panel"
+	depends on OF
+	depends on DRM_MIPI_DSI
+	depends on BACKLIGHT_CLASS_DEVICE
+	help
+	  Say Y here if you want to enable support for Viewtrix vtdr6126
+	  fhdp video panel. The panel has a 1080x2400 resolution
+	  and uses 24-bits RGB per pixel. It provides a MIPI DSI
+	  interface to host.
