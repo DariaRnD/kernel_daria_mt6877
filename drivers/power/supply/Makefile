@@ -138,3 +138,4 @@ ifeq ($(CONFIG_CUSTOM_BATTERY_EXTERNAL_CHANNEL),y)
 endif
 #prize add by lvyuanchuan for fg 20221019
 obj-$(CONFIG_MTK_CW2217_SUPPORT) += cw221x_fuel_gauge.o
+obj-$(CONFIG_SM5602_SUPPORT) += sm5602_fg.o

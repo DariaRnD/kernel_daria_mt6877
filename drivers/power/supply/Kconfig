@@ -832,6 +832,15 @@ config MTK_CW2217_SUPPORT
 	help
 	  Set to Yes if cw2217 is used.
 #prize add by lvyuanchuan for fg ,20221018 end
+
+#prize add by lvyuanchuan for fg ,20240821 start
+config SM5602_SUPPORT
+	bool "customer external gauge SM5602"
+	default n
+	help
+	  Set to Yes if SM5602 is used.
+#prize add by lvyuanchuan for fg ,20240821 end
+
 if MACH_MT6768
 source "drivers/power/supply/mediatek/battery/Kconfig"
 source "drivers/power/supply/mediatek/charger/Kconfig"
