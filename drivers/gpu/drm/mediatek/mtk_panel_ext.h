@@ -221,6 +221,9 @@ struct dynamic_fps_params {
 };
 
 struct mtk_panel_params {
+	/*pri add vfp send cmd support 20240909 start*/
+	unsigned int change_fps_by_vfp_send_cmd;
+	/*pri add vfp send cmd support 20240909 end*/
 	unsigned int pll_clk;
 	unsigned int data_rate;
 	struct mtk_dsi_phy_timcon phy_timcon;
