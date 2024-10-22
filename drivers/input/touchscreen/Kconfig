@@ -1646,4 +1646,5 @@ config TOUCHSCREEN_MTK_GT9XX
           module will be called.
 		  
 source "drivers/input/touchscreen/GT917S/Kconfig"
+source "drivers/input/touchscreen/focal_FT3519/Kconfig"
 #prize add by zhaopengge 20201022 end

@@ -1,0 +1,11 @@
+#
+# Focaltech Touchscreen driver configuration
+#
+
+config TOUCHSCREEN_FTS_FT3519
+    tristate "Focaltech Touchscreen"
+    help
+      Say Y here if you have Focaltech touch panel.
+
+	  If build module, say M.
+	  If unsure, say N.
