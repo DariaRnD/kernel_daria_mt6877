@@ -630,8 +630,8 @@
 	};
 };
 /* prize-add-durunshen-20221021-end */
-#include "k6877v1_64_k419/cust.dtsi"
-#include "mediatek/cust_mt6877_touch_1080x2400.dtsi"
-#include "mediatek/cust_mt6877_camera.dtsi"
+#include "zahedan/cust.dtsi"
+#include "mediatek/cust_zahedan_touch_1080x2400.dtsi"
+#include "mediatek/cust_zahedan_camera.dtsi"
 /*End of this file, DO NOT ADD ANYTHING HERE*/
 
