@@ -41,10 +41,13 @@ struct stCAM_CAL_LIST_STRUCT g_camCalList[] = {
 	{OV50A40OIS_SENSOR_ID, 0xA0, Common_read_region},
 	{OV16A1Q_SENSOR_ID, 0xA0, Common_read_region},
 	{OV64B40_SENSOR_ID, 0xA4, Common_read_region},
-	{OV64B404CELL_SENSOR_ID, 0xA4, Common_read_region}, 	
+	{OV64B404CELL_SENSOR_ID, 0xA4, Common_read_region},
 	{GC02M1MACRO_SENSOR_ID, 0xA2, Common_read_region},
-	{GC08A3WIDE_SENSOR_ID, 0xA0, Common_read_region},	
-	{HI1336WIDE_SENSOR_ID, 0xA0, Common_read_region},	
+	{GC08A3WIDE_SENSOR_ID, 0xA0, Common_read_region},
+	{HI1336WIDE_SENSOR_ID, 0xA0, Common_read_region},
+	{OV50C40_SENSOR_ID, 0xB0, Common_read_region},
+	{OV50E40_SENSOR_ID, 0xB0, Common_read_region},
+	{OV08D10WIDE_SENSOR_ID, 0xA0, Common_read_region},
 	/*prize add by zhuzhengjiang end*/
 	/*  ADD before this line */
 	{0, 0, 0}       /*end of list */
