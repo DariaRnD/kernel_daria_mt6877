@@ -61,4 +61,7 @@ source "drivers/nfc/st95hf/Kconfig"
 #/*prize add by liuxuhui---20220531---start*/
 source "drivers/nfc/nxp533/Kconfig"
 #/*prize add by liuxuhui---20220531---end*/
+#pri add for samsung nfc begin
+source "drivers/nfc/samsung/Kconfig"
+#pri add for samsung nfc end
 endmenu

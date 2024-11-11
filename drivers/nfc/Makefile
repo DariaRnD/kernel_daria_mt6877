@@ -20,3 +20,6 @@ obj-$(CONFIG_NFC_ST95HF)	+= st95hf/
 #/*prize add by liuxuhui---20220531---start*/
 obj-$(CONFIG_MANUFACTOR_NFC_NXP533)              += nxp533/
 #/*prize add by liuxuhui---20220531---end*/
+#pri add for samsung nfc begin
+obj-$(CONFIG_SEC_NFC)           += samsung/
+#pri add for samsung nfc end
