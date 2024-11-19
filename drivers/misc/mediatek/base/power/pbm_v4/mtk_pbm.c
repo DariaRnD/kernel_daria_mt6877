@@ -142,8 +142,9 @@ mt_gpufreq_set_power_limit_by_pbm(unsigned int limited_power)
 {
 	pr_warn_ratelimited("%s not ready\n", __func__);
 }
- /*prize del by lvyuanchuan for disable-fg,20221026*/
-#if (defined(CONFIG_MACH_MT6768) \
+
+#if (defined(CONFIG_MACH_MT6877) \
+	|| defined(CONFIG_MACH_MT6768) \
 	|| defined(CONFIG_MACH_MT6781) \
 	|| defined(CONFIG_MACH_MT6833))
 u32 __attribute__ ((weak))

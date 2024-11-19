@@ -74,8 +74,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define PMR_MAX_TRANSLATION_STACK_ALLOC				(32)
 
-/* Maximum size PMR can have is 8G of memory */
-#define PMR_MAX_SUPPORTED_SIZE (0x200000000ULL)
+/* Maximum size PMR can have is 1G of memory */
+#define PMR_MAX_SUPPORTED_SIZE IMG_UINT64_C(0x200000000)
 /* Max number of pages in a PMR at 4k page size */
 #define PMR_MAX_SUPPORTED_4K_PAGE_COUNT (PMR_MAX_SUPPORTED_SIZE >> 12ULL)
 
@@ -524,12 +524,56 @@ PVRSRV_ERROR
 PMRUnrefPMR(PMR *psPMR);
 
 /*
+ * PMRRefPMR2()
+ *
+ * Take a reference on the passed in PMR.
+ *
+ * This function does not perform address locking as opposed to PMRRefPMR().
+ */
+void
+PMRRefPMR2(PMR *psPMR);
+
+/*
+ * PMRUnrefPMR2()
+ *
+ * This undoes a call to any of the PhysmemNew* family of APIs
+ * (i.e. any PMR factory "constructor").
+ *
+ * This relinquishes a reference to the PMR, and, where the refcount
+ * reaches 0, causes the PMR to be destroyed (calling the finalizer
+ * callback on the PMR, if there is one)
+ */
+void
+PMRUnrefPMR2(PMR *psPMR);
+
+/*
  * PMRUnrefUnlockPMR()
  *
  * Same as above but also unlocks the PMR.
  */
 PVRSRV_ERROR
 PMRUnrefUnlockPMR(PMR *psPMR);
+
+/*
+ * PMRCpuMapCountIncr()
+ *
+ * Increment count of the number of current CPU mappings of the PMR.
+ *
+ */
+void
+PMRCpuMapCountIncr(PMR *psPMR);
+
+/*
+ * PMRCpuMapCountDecr()
+ *
+ * Decrement count of the number of current CPU mappings of the PMR.
+ *
+ */
+void
+PMRCpuMapCountDecr(PMR *psPMR);
+
+IMG_BOOL
+PMR_IsCpuMapped(PMR *psPMR);
 
 PPVRSRV_DEVICE_NODE
 PMR_DeviceNode(const PMR *psPMR);
@@ -1154,5 +1198,23 @@ PMRDeInit(void);
 PVRSRV_ERROR
 PMRStoreRIHandle(PMR *psPMR, void *hRIHandle);
 #endif
+
+/*
+ * PMRLockPMR()
+ *
+ * To be called when the PMR must not be modified by any other call-stack.
+ * Acquires the mutex on the passed in PMR.
+ */
+void
+PMRLockPMR(PMR *psPMR);
+
+/*
+ * PMRUnlockPMR()
+ *
+ * To be called when the PMR is no longer being modified.
+ * Releases the per-PMR mutex.
+ */
+void
+PMRUnlockPMR(PMR *psPMR);
 
 #endif /* #ifdef _SRVSRV_PMR_H_ */

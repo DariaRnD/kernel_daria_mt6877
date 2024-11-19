@@ -637,6 +637,13 @@ PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList,
 		size_t uiNumBytes;
 		PVRSRV_ERROR res;
 		IMG_HANDLE hMapHandle;
+		IMG_DEVMEM_SIZE_T uiPMRSize;
+
+		PMR_LogicalSize(psFreeList->psFreeListPMR, &uiPMRSize);
+
+		/* Check for overflow. Validate size and offset. */
+		PVR_GOTO_IF_INVALID_PARAM(psFreeList->uiFreeListPMROffset + ui32MapSize > psFreeList->uiFreeListPMROffset, eError, ErrorPopulateFreelist);
+		PVR_GOTO_IF_INVALID_PARAM(psFreeList->uiFreeListPMROffset + ui32MapSize <= uiPMRSize, eError, ErrorPopulateFreelist);
 
 		/* Map both the FL and the shadow FL */
 		res = PMRAcquireKernelMappingData(psFreeList->psFreeListPMR, psFreeList->uiFreeListPMROffset, ui32MapSize,
@@ -1779,7 +1786,7 @@ PVRSRV_ERROR RGXDestroyHWRTDataSet(RGX_KM_HW_RT_DATASET *psKMHWRTDataSet)
 
 	/* Cleanup HWRTData */
 	eError = RGXFWRequestHWRTDataCleanUp(psDevNode, psHWRTData);
-	if (eError == PVRSRV_ERROR_RETRY)
+	if (eError != PVRSRV_OK)
 	{
 		return eError;
 	}
@@ -1836,11 +1843,84 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 		IMG_DEVMEM_OFFSET_T	uiFreeListPMROffset,
 		RGX_FREELIST			**ppsFreeList)
 {
-	PVRSRV_ERROR				eError;
-	RGXFWIF_FREELIST			*psFWFreeList;
-	DEVMEM_MEMDESC				*psFWFreelistMemDesc;
-	RGX_FREELIST				*psFreeList;
-	PVRSRV_RGXDEV_INFO			*psDevInfo = psDeviceNode->pvDevice;
+	PVR_UNREFERENCED_PARAMETER(psConnection);
+	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
+	PVR_UNREFERENCED_PARAMETER(hMemCtxPrivData);
+	PVR_UNREFERENCED_PARAMETER(ui32MaxFLPages);
+	PVR_UNREFERENCED_PARAMETER(ui32InitFLPages);
+	PVR_UNREFERENCED_PARAMETER(ui32GrowFLPages);
+	PVR_UNREFERENCED_PARAMETER(ui32GrowParamThreshold);
+	PVR_UNREFERENCED_PARAMETER(psGlobalFreeList);
+	PVR_UNREFERENCED_PARAMETER(bCheckFreelist);
+	PVR_UNREFERENCED_PARAMETER(sFreeListDevVAddr);
+	PVR_UNREFERENCED_PARAMETER(psFreeListPMR);
+	PVR_UNREFERENCED_PARAMETER(uiFreeListPMROffset);
+	PVR_UNREFERENCED_PARAMETER(ppsFreeList);
+
+	return PVRSRV_ERROR_NOT_IMPLEMENTED;
+}
+
+PVRSRV_ERROR RGXCreateFreeList2(CONNECTION_DATA			*psConnection,
+                               PVRSRV_DEVICE_NODE			*psDeviceNode,
+                               IMG_HANDLE				hMemCtxPrivData,
+                               IMG_UINT32				ui32MaxFLPages,
+                               IMG_UINT32				ui32InitFLPages,
+                               IMG_UINT32				ui32GrowFLPages,
+                               IMG_UINT32				ui32GrowParamThreshold,
+                               RGX_FREELIST				*psGlobalFreeList,
+                               IMG_BOOL					bCheckFreelist,
+                               DEVMEMINT_RESERVATION2		*psFreeListReservation,
+                               RGX_FREELIST				**ppsFreeList)
+{
+	PVRSRV_ERROR       eError;
+	RGXFWIF_FREELIST   *psFWFreeList;
+	DEVMEM_MEMDESC     *psFWFreelistMemDesc;
+	RGX_FREELIST       *psFreeList;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	IMG_DEV_VIRTADDR   sFreeListDevVAddr;
+	PMR*               psFreeListPMR = NULL;
+
+	/* Obtain reference to reservation object */
+	if (!DevmemIntReservationAcquire(psFreeListReservation))
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+		        "%s: Failed to acquire reservation for freelist buffer",
+		        __func__));
+		eError = PVRSRV_ERROR_REFCOUNT_OVERFLOW;
+		goto ErrorReservationAcquire;
+	}
+
+	eError = DevmemIntGetReservationData(psFreeListReservation, &psFreeListPMR, &sFreeListDevVAddr);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+		        "%s: Error from DevmemIntGetReservationData: %s",
+		        __func__, PVRSRVGetErrorString(eError)));
+
+		goto ErrorAllocHost;
+	}
+
+	/* Check if client properly allocated PMMETA_PROTECT */
+	if ((PMR_Flags(psFreeListPMR) & PVRSRV_MEMALLOCFLAG_DEVICE_FLAG(PMMETA_PROTECT)) == 0)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+		        "%s: Freelist PMR must have PMMETA_PROTECT set",
+		        __func__));
+		eError = PVRSRV_ERROR_INVALID_FLAGS;
+		goto ErrorAllocHost;
+	}
+
+	if (PMR_IsSparse(psFreeListPMR))
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+		        "%s: Free list PMR cannot be sparse!",
+		        __func__));
+		eError = PVRSRV_ERROR_INVALID_PARAMS;
+		goto ErrorAllocHost;
+	}
+
+	/* Ref the PMR to prevent resource being destroyed before use */
+	PMRRefPMR(psFreeListPMR);
 
 	if (OSGetPageShift() > RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT)
 	{
@@ -1861,7 +1941,7 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 		ui32NewMaxFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
 
 		PVR_DPF((PVR_DBG_WARNING, "%s: Increased number of PB pages: Init %u -> %u, Grow %u -> %u, Max %u -> %u",
-				 __func__, ui32InitFLPages, ui32NewInitFLPages, ui32GrowFLPages, ui32NewGrowFLPages, ui32MaxFLPages, ui32NewMaxFLPages));
+		        __func__, ui32InitFLPages, ui32NewInitFLPages, ui32GrowFLPages, ui32NewGrowFLPages, ui32MaxFLPages, ui32NewMaxFLPages));
 
 		ui32InitFLPages = ui32NewInitFLPages;
 		ui32GrowFLPages = ui32NewGrowFLPages;
@@ -1873,8 +1953,8 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 	if (psFreeList == NULL)
 	{
 		PVR_DPF((PVR_DBG_ERROR,
-				"%s: failed to allocate host data structure",
-				__func__));
+		        "%s: failed to allocate host data structure",
+		        __func__));
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto ErrorAllocHost;
 	}
@@ -1903,16 +1983,20 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR,
-				"%s: DevmemAllocate for RGXFWIF_FREELIST failed",
-				__func__));
+		        "%s: DevmemAllocate for RGXFWIF_FREELIST failed",
+		        __func__));
 		goto FWFreeListAlloc;
 	}
 
 	/* Initialise host data structures */
 	psFreeList->psDevInfo = psDevInfo;
 	psFreeList->psConnection = psConnection;
+
 	psFreeList->psFreeListPMR = psFreeListPMR;
-	psFreeList->uiFreeListPMROffset = uiFreeListPMROffset;
+	psFreeList->psFreeListReservation = psFreeListReservation;
+
+	psFreeList->uiFreeListPMROffset = 0U;
+
 	psFreeList->psFWFreelistMemDesc = psFWFreelistMemDesc;
 	eError = RGXSetFirmwareAddress(&psFreeList->sFreeListFWDevVAddr, psFWFreelistMemDesc, 0, RFW_FWADDR_FLAG_NONE);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", ErrorSetFwAddr);
@@ -1970,8 +2054,8 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 		if (eError != PVRSRV_OK)
 		{
 			PVR_DPF((PVR_DBG_ERROR,
-					"%s: RGXSetFirmwareAddress for RGXFWIF_FWMEMCONTEXT failed",
-					__func__));
+			        "%s: RGXSetFirmwareAddress for RGXFWIF_FWMEMCONTEXT failed",
+			        __func__));
 			DevmemReleaseCpuVirtAddr(psFreeList->psFWFreelistMemDesc);
 			goto FWFreeListCpuMap;
 		}
@@ -2052,11 +2136,15 @@ FWFreeListCpuMap:
 
 ErrorSetFwAddr:
 	DevmemFwUnmapAndFree(psDevInfo, psFWFreelistMemDesc);
+	PMRUnrefPMR(psFreeList->psFreeListPMR);
 
 FWFreeListAlloc:
 	OSFreeMem(psFreeList);
 
 ErrorAllocHost:
+	DevmemIntReservationRelease(psFreeListReservation);
+
+ErrorReservationAcquire:
 	PVR_ASSERT(eError != PVRSRV_OK);
 	return eError;
 }
@@ -2143,6 +2231,10 @@ PVRSRV_ERROR RGXDestroyFreeList(RGX_FREELIST *psFreeList)
 	PVR_ASSERT(dllist_is_empty(&psFreeList->sMemoryBlockInitHead));
 	PVR_ASSERT(psFreeList->ui32CurrentFLPages == 0);
 
+	/* Remove reference from the PMR and reservation resources */
+	PMRUnrefPMR(psFreeList->psFreeListPMR);
+	DevmemIntReservationRelease(psFreeList->psFreeListReservation);
+
 	/* free Freelist */
 	OSFreeMem(psFreeList);
 
@@ -2152,13 +2244,30 @@ PVRSRV_ERROR RGXDestroyFreeList(RGX_FREELIST *psFreeList)
 
 /*
 	RGXCreateZSBuffer
- */
+*/
 PVRSRV_ERROR RGXCreateZSBufferKM(CONNECTION_DATA * psConnection,
-		PVRSRV_DEVICE_NODE	*psDeviceNode,
-		DEVMEMINT_RESERVATION	*psReservation,
-		PMR						*psPMR,
-		PVRSRV_MEMALLOCFLAGS_T	uiMapFlags,
-		RGX_ZSBUFFER_DATA **ppsZSBuffer)
+                                 PVRSRV_DEVICE_NODE	*psDeviceNode,
+                                 DEVMEMINT_RESERVATION	*psReservation,
+                                 PMR					*psPMR,
+                                 PVRSRV_MEMALLOCFLAGS_T		uiMapFlags,
+                                 RGX_ZSBUFFER_DATA **ppsZSBuffer)
+{
+	PVR_UNREFERENCED_PARAMETER(psConnection);
+	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
+	PVR_UNREFERENCED_PARAMETER(psReservation);
+	PVR_UNREFERENCED_PARAMETER(psPMR);
+	PVR_UNREFERENCED_PARAMETER(uiMapFlags);
+	PVR_UNREFERENCED_PARAMETER(ppsZSBuffer);
+
+	return PVRSRV_ERROR_NOT_IMPLEMENTED;
+}
+
+PVRSRV_ERROR RGXCreateZSBufferKM2(CONNECTION_DATA * psConnection,
+                                 PVRSRV_DEVICE_NODE	*psDeviceNode,
+                                 DEVMEMINT_RESERVATION2	*psReservation,
+                                 PMR					*psPMR,
+                                 PVRSRV_MEMALLOCFLAGS_T		uiMapFlags,
+                                 RGX_ZSBUFFER_DATA **ppsZSBuffer)
 {
 	PVRSRV_ERROR				eError;
 	PVRSRV_RGXDEV_INFO			*psDevInfo = psDeviceNode->pvDevice;
@@ -2181,15 +2290,26 @@ PVRSRV_ERROR RGXCreateZSBufferKM(CONNECTION_DATA * psConnection,
 	/* Populate Host data */
 	psZSBuffer->psDevInfo = psDevInfo;
 	psZSBuffer->psReservation = psReservation;
+
+	/* Obtain reference to reservation object */
+	if (!DevmemIntReservationAcquire(psZSBuffer->psReservation))
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+				"%s: Failed to acquire reservation for ZS-Buffer",
+				__func__));
+		eError = PVRSRV_ERROR_REFCOUNT_OVERFLOW;
+		goto ErrorReservationAcquire;
+	}
+
 	psZSBuffer->psPMR = psPMR;
-	psZSBuffer->uiMapFlags = uiMapFlags;
+	/* Obtain reference to PMR */
+	PMRRefPMR(psZSBuffer->psPMR);
+
 	psZSBuffer->ui32RefCount = 0;
 	psZSBuffer->bOnDemand = bOnDemand;
 	if (bOnDemand)
 	{
 		/* psZSBuffer->ui32ZSBufferID set below with lock... */
-		psZSBuffer->psMapping = NULL;
-
 		OSLockAcquire(psDevInfo->hLockZSBuffer);
 		psZSBuffer->ui32ZSBufferID = psDevInfo->ui32ZSBufferCurrID++;
 		dllist_add_to_tail(&psDevInfo->sZSBufferHead, &psZSBuffer->sNode);
@@ -2272,6 +2392,9 @@ ErrorAcquireFWZSBuffer:
 	DevmemFwUnmapAndFree(psDevInfo, psFWZSBufferMemDesc);
 
 ErrorAllocFWZSBuffer:
+	PMRUnrefPMR(psZSBuffer->psPMR);
+	DevmemIntReservationRelease(psZSBuffer->psReservation);
+ErrorReservationAcquire:
 	OSFreeMem(psZSBuffer);
 
 ErrorAllocCleanup:
@@ -2291,10 +2414,17 @@ PVRSRV_ERROR RGXDestroyZSBufferKM(RGX_ZSBUFFER_DATA *psZSBuffer)
 	PVR_ASSERT(psZSBuffer);
 	hLockZSBuffer = psZSBuffer->psDevInfo->hLockZSBuffer;
 
+	if (psZSBuffer->ui32RefCount != 0)
+	{
+		PVR_ASSERT(IMG_FALSE);
+		/* ZS-Buffer is still referenced (by population object) */
+		return PVRSRV_ERROR_RETRY;
+	}
+
 	/* Request ZS Buffer cleanup */
 	eError = RGXFWRequestZSBufferCleanUp(psZSBuffer->psDevInfo,
 			psZSBuffer->sZSBufferFWDevVAddr);
-	if (eError != PVRSRV_ERROR_RETRY)
+	if (eError == PVRSRV_OK)
 	{
 		/* Free the firmware render context. */
 		RGXUnsetFirmwareAddress(psZSBuffer->psFWZSBufferMemDesc);
@@ -2309,9 +2439,11 @@ PVRSRV_ERROR RGXDestroyZSBufferKM(RGX_ZSBUFFER_DATA *psZSBuffer)
 			OSLockRelease(hLockZSBuffer);
 		}
 
-		PVR_ASSERT(psZSBuffer->ui32RefCount == 0);
-
 		PVR_DPF((PVR_DBG_MESSAGE, "ZS-Buffer [%p] destroyed", psZSBuffer));
+
+		/* Release reference to reservation object and the PMR */
+		PMRUnrefPMR(psZSBuffer->psPMR);
+		DevmemIntReservationRelease(psZSBuffer->psReservation);
 
 		/* Free ZS-Buffer host data structure */
 		OSFreeMem(psZSBuffer);
@@ -2352,22 +2484,17 @@ RGXBackingZSBuffer(RGX_ZSBUFFER_DATA *psZSBuffer)
 		{
 			IMG_HANDLE hDevmemHeap;
 
-			PVR_ASSERT(psZSBuffer->psMapping == NULL);
-
 			/* Get Heap */
 			eError = DevmemServerGetHeapHandle(psZSBuffer->psReservation, &hDevmemHeap);
-			PVR_ASSERT(psZSBuffer->psMapping == NULL);
 			if (unlikely(hDevmemHeap == (IMG_HANDLE)NULL))
 			{
 				OSLockRelease(hLockZSBuffer);
 				return PVRSRV_ERROR_INVALID_HEAP;
 			}
 
-			eError = DevmemIntMapPMR(hDevmemHeap,
-					psZSBuffer->psReservation,
-					psZSBuffer->psPMR,
-					psZSBuffer->uiMapFlags,
-					&psZSBuffer->psMapping);
+			eError = DevmemIntMapPMR2(hDevmemHeap,
+			                         psZSBuffer->psReservation,
+			                         psZSBuffer->psPMR);
 			if (eError != PVRSRV_OK)
 			{
 				PVR_DPF((PVR_DBG_ERROR,
@@ -2463,9 +2590,7 @@ RGXUnbackingZSBuffer(RGX_ZSBUFFER_DATA *psZSBuffer)
 	{
 		if (psZSBuffer->ui32RefCount == 1)
 		{
-			PVR_ASSERT(psZSBuffer->psMapping);
-
-			eError = DevmemIntUnmapPMR(psZSBuffer->psMapping);
+			eError = DevmemIntUnmapPMR2(psZSBuffer->psReservation);
 			if (eError != PVRSRV_OK)
 			{
 				PVR_DPF((PVR_DBG_ERROR,
