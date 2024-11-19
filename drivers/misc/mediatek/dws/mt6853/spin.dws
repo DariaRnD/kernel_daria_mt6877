@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--dct_version="2.5" buid_sn="161102" dws_modification_time="09.20.2024.15:51:11"-->
+<!--dct_version="2.5" buid_sn="161102" dws_modification_time="10.12.2024.14:04:17"-->
 <dct_cfg>
     <general chip="MT6877">
         <proj>MT6877_PHONE</proj>
@@ -808,7 +808,14 @@
                 <ies>true</ies>
             </gpio78>
             <gpio79>
+                <eint_mode>false</eint_mode>
+                <def_mode>1</def_mode>
+                <inpull_en>false</inpull_en>
+                <inpull_selhigh>false</inpull_selhigh>
+                <def_dir>IN</def_dir>
+                <out_high>false</out_high>
                 <smt>true</smt>
+                <ies>true</ies>
             </gpio79>
             <gpio80>
                 <smt>true</smt>
