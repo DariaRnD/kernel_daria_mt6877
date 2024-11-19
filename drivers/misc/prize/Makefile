@@ -52,7 +52,7 @@ obj-$(CONFIG_AWINIC_HAPTIC_HV) += haptic_hv/
 #prize add by xuejian for gesture 20230210 start
 obj-y += prize_common_node/
 #prize add by xuejian for gesture 20230210 end
-
+obj-y += prize_sim_state/
 #prize add by xuejian for gesture 20230210 start
 obj-y += prize_oled_node/
 #prize add by xuejian for gesture 20230210 end
