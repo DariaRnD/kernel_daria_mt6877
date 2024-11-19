@@ -15,8 +15,13 @@ static struct pe50 *pe5;
 /*pri add by lvyuanchuan 202400820 begin*/
 #define PE50_ALGO_RERUN                   (1)
 #define PE50_ALGO_DONE                    (2)
+#define PE50_ALGO_FAIL                    (2)
 /*uA*/
+#ifdef CONFIG_CHARGER_SPIN
+#define THERMAL_INPUT_LIMIT_AT_SCREENON   (2000000)
+#else
 #define THERMAL_INPUT_LIMIT_AT_SCREENON   (3000000)
+#endif
 #define THERMAL_INPUT_ITEM                (1200000)
 
 #define HW_TEMP_LEVEL_1                   (35)
@@ -116,11 +121,11 @@ int pe50_run(void)
 			pinfo = chg_consumer->cm;
 		} else {
 			chr_err("[PE50] chg_consumer is null!\n");
-			return 0;
+			return PE50_ALGO_FAIL;
 		}
 	} else {
 		chr_err("[PE50] pe50 is null!\n");
-		return 0;
+		return PE50_ALGO_FAIL;
 	}
 	chr_info("[PE50]state:%d \n",pe5->state);
 	switch (pe5->state) {
@@ -129,6 +134,8 @@ int pe50_run(void)
 		if (ret == 0) {
 			pe5->online = true;
 			pe5->state = PE50_RUNNING;
+		} else {
+			return PE50_ALGO_FAIL;
 		}
 		break;
 	case PE50_RUNNING:

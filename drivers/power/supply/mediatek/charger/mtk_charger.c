@@ -1147,10 +1147,19 @@ void do_sw_jeita_state_machine(struct charger_manager *info)
 					info->data.temp_t2_thres);
 			}
 			if (sw_jeita->sm == TEMP_BELOW_T0) {
+#ifdef CONFIG_CHARGER_SPIN
+				/* pri X91NF-137 add by allen 202400108 */
+				chr_err("[SW_JEITA] Battery Temperature between %d and %d,allow charging!!\n",
+					info->data.temp_t1_thres,
+					info->data.temp_t1_thres_plus_x_degree);
+				sw_jeita->charging = true;
+				sw_jeita->sm = TEMP_T0_TO_T1;
+#else /* CONFIG_CHARGER_SPIN */
 				chr_err("[SW_JEITA] Battery Temperature between %d and %d,not allow charging yet!!\n",
 					info->data.temp_t1_thres,
 					info->data.temp_t1_thres_plus_x_degree);
 				sw_jeita->charging = false;
+#endif /* CONFIG_CHARGER_SPIN */
 			}
 		} else {
 			chr_err("[SW_JEITA] Battery Temperature between %d and %d !!\n",
@@ -1163,11 +1172,18 @@ void do_sw_jeita_state_machine(struct charger_manager *info)
 		if ((sw_jeita->sm == TEMP_BELOW_T0)
 		    && (info->battery_temp
 			<= info->data.temp_t0_thres_plus_x_degree)) {
+#ifdef CONFIG_CHARGER_SPIN
+			/* pri X91NF-137 add by allen 202400108 */
+			chr_err("[SW_JEITA] Battery Temperature between %d and %d,allow charging!!\n",
+				info->data.temp_t0_thres,
+				info->data.temp_t0_thres_plus_x_degree);
+			sw_jeita->charging = true;
+#else /* CONFIG_CHARGER_SPIN */
 			chr_err("[SW_JEITA] Battery Temperature between %d and %d,not allow charging yet!!\n",
 				info->data.temp_t0_thres,
 				info->data.temp_t0_thres_plus_x_degree);
-
 			sw_jeita->charging = false;
+#endif /* CONFIG_CHARGER_SPIN */
 		} else {
 			chr_err("[SW_JEITA] Battery Temperature between %d and %d !!\n",
 				info->data.temp_t0_thres,
@@ -1179,7 +1195,12 @@ void do_sw_jeita_state_machine(struct charger_manager *info)
 		chr_err("[SW_JEITA] Battery below low Temperature(%d) !!\n",
 			info->data.temp_t0_thres);
 		sw_jeita->sm = TEMP_BELOW_T0;
+#ifdef CONFIG_CHARGER_SPIN
+		/* pri X91NF-137 add by allen 202400108 */
+		sw_jeita->charging = (info->battery_temp >= info->data.temp_neg_10_thres);
+#else
 		sw_jeita->charging = false;
+#endif
 	}
 
 	/* set CV after temperature changed */
@@ -2479,7 +2500,12 @@ static int mtk_charger_parse_dt(struct charger_manager *info,
 	}
 
 	if (of_property_read_u32(np, "temp_neg_10_thres", &val) >= 0)
+#ifdef CONFIG_CHARGER_SPIN
+		/* pri X91NF-137 add by allen 202400108 */
+		info->data.temp_neg_10_thres = 0 - val;
+#else
 		info->data.temp_neg_10_thres = val;
+#endif
 	else {
 		chr_err("use default TEMP_NEG_10_THRES:%d\n",
 			TEMP_NEG_10_THRES);

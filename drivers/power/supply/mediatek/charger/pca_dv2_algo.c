@@ -223,6 +223,10 @@ struct dv2_algo_data {
 
 	/* Algorithm */
 	bool inited;
+	/*pri add by allen 202401022*/
+#ifdef CONFIG_CHARGER_SPIN
+	bool waiver;
+#endif
 	bool ta_ready;
 	bool run_once;
 	bool is_swchg_en;
@@ -1675,11 +1679,13 @@ static inline int __dv2_start(struct dv2_algo_info *info)
 		goto start;
 	}
 	ita = precise_div(percent(vbus * ibus, 90), 2 * vbat);
+#ifndef CONFIG_CHARGER_SPIN
 	if (ita < desc->idvchg_term) {
 		PCA_ERR("estimated ita(%d) < idvchg_term(%d)\n", ita,
 			desc->idvchg_term);
 		return -EINVAL;
 	}
+#endif
 	/* Update idvchg_ss_init */
 	if (ita >= auth_data->ita_min) {
 		PCA_INFO("set idvchg_ss_init(%d)->(%d)\n", desc->idvchg_ss_init,
@@ -1992,6 +1998,10 @@ err:
 		return 0;
 	}
 out:
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022*/
+	data->waiver = true;
+#endif
 	return __dv2_stop(info, &sinfo);
 }
 
@@ -2373,6 +2383,10 @@ err:
 		return 0;
 	}
 out:
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022*/
+	data->waiver = true;
+#endif
 	return __dv2_stop(info, &sinfo);
 }
 
@@ -2748,6 +2762,10 @@ out_set_cap:
 	}
 	return 0;
 out:
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022*/
+	data->waiver = true;
+#endif
 	return __dv2_stop(info, &sinfo);
 }
 
@@ -3668,6 +3686,10 @@ static inline int __dv2_plugout_reset(struct dv2_algo_info *info,
 	PCA_DBG("++\n");
 	data->ta_ready = false;
 	data->run_once = false;
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022*/
+	data->waiver = false;
+#endif
 	return __dv2_stop(info, sinfo);
 }
 
@@ -4095,6 +4117,15 @@ static bool dv2_is_algo_ready(struct prop_chgalgo_device *pca)
 		rdy = false;
 		goto out;
 	}
+
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022 begin*/
+	if (data->waiver) {
+		rdy = false;
+		goto out;
+	}
+	/*pri add by allen 202401022 end*/
+#endif
 
 	PCA_DBG("run once(%d)\n", data->run_once);
 	if (data->run_once) {

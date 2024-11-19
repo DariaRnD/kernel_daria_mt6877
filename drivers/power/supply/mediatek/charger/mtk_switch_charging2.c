@@ -282,6 +282,24 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 		    && info->chr_type == STANDARD_HOST)
 			chr_err("USBIF & STAND_HOST skip current check\n");
 		else {
+#ifdef CONFIG_CHARGER_SPIN
+			/* pri X91NF-137 add by allen 202400108 begin*/
+			if (info->sw_jeita.sm == TEMP_ABOVE_T4)
+				pdata->charging_current_limit = 0;
+			else if(info->sw_jeita.sm == TEMP_T3_TO_T4)
+				pdata->charging_current_limit = min(1500000 , pdata->charging_current_limit);
+			else if(info->sw_jeita.sm == TEMP_T1_TO_T2)
+				pdata->charging_current_limit = min(2500000 , pdata->charging_current_limit);
+			else if(info->sw_jeita.sm == TEMP_T0_TO_T1)
+				pdata->charging_current_limit = min(1500000 , pdata->charging_current_limit);
+			else if(info->sw_jeita.sm == TEMP_BELOW_T0) {
+				if (info->battery_temp >= info->data.temp_neg_10_thres)
+					pdata->charging_current_limit = min(1000000 , pdata->charging_current_limit);
+				else
+					pdata->charging_current_limit = 0;
+			}
+			/* pri X91NF-137 add by allen 202400108 end*/
+#else /* CONFIG_CHARGER_SPIN */
 			/*prize added by lvyuanchuan,X9LAVA-475,start*/
 			if (info->sw_jeita.sm == TEMP_T1_TO_T2) {
 				pdata->charging_current_limit = 2000000;
@@ -293,6 +311,7 @@ static void swchg_select_charging_current_limit(struct charger_manager *info)
 				pdata->charging_current_limit = 0;
 			}
 			/*prize added by lvyuanchuan,X9LAVA-475,end*/
+#endif /* CONFIG_CHARGER_SPIN */
 		}
 	}
 
@@ -460,6 +479,10 @@ static int mtk_switch_charging_plug_out(struct charger_manager *info)
 	mtk_pe20_set_is_cable_out_occur(info, true);
 	mtk_pe_set_is_cable_out_occur(info, true);
 	mtk_pdc_plugout(info);
+#ifdef CONFIG_CHARGER_SPIN
+	/*pri add by allen 202401022 begin*/
+	mtk_pe50_plugout_reset(info);
+#endif
 
 	if (info->enable_pe_5)
 		pe50_stop();

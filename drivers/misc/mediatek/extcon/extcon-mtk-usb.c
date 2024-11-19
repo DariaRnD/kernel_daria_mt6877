@@ -309,7 +309,33 @@ static int mtk_usb_extcon_set_vbus_v1(bool is_on) {
 		return 0;
 }
 #endif //ADAPT_CHARGER_V1
+/* pri X91NF-107 add by allen 202400108 begin*/
+#if defined(CONFIG_CHARGER_UPM6722)
+static void set_cp_online(bool en)
+{
+	struct power_supply *primary_dvchg_psy;
+	union power_supply_propval pval;
+	int ret;
 
+	primary_dvchg_psy = power_supply_get_by_name("upm6722-standalone");
+
+	if(IS_ERR_OR_NULL(primary_dvchg_psy))
+		return;
+
+	pval.intval = en;
+
+	ret = power_supply_set_property(primary_dvchg_psy,
+				POWER_SUPPLY_PROP_ONLINE, &pval);
+	if (ret < 0) {
+		pr_err("failed to set online prop\n");
+		return;
+	}
+
+	pr_info("set cp online=%d \n", pval.intval);
+	return;
+}
+#endif
+/* pri X91NF-107 add by allen 202400108 end*/
 static int mtk_usb_extcon_set_vbus(struct mtk_extcon_info *extcon,
 							bool is_on)
 {
@@ -326,6 +352,11 @@ if(is_on){
 
 }
 #endif
+/* pri X91NF-107 add by allen 202400108 begin*/
+#if defined(CONFIG_CHARGER_UPM6722)
+	set_cp_online(is_on);
+#endif
+/* pri X91NF-107 add by allen 202400108 end*/
 //prize add by lipengpeng 20210308 end
 #if defined ADAPT_CHARGER_V1
 //drv hjw for otg vbus start

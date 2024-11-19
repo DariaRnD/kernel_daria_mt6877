@@ -1690,7 +1690,7 @@ static int fg_cal_carc (struct sm_fg_chip *sm)
 		pr_err("[SM5602]Failed to write SM_FG_REG_CURR_OFFSET, ret = %d\n", ret);
 		return ret;
 	} else {
-		pr_err("[SM5602]write SM_FG_REG_CURR_OFFSET [0x%x] = 0x%x\n", FG_REG_CURR_IN_SLOPE, sm->curr_voffset);
+		pr_err("[SM5602]write SM_FG_REG_CURR_OFFSET [0x%x] = 0x%x\n", sm->regs[SM_FG_REG_CURR_OFFSET], sm->curr_voffset);
 	}
 
 	ret = fg_write_word(sm, sm->regs[SM_FG_REG_CURR_SLOPE], sm->curr_vslope);
@@ -1698,7 +1698,7 @@ static int fg_cal_carc (struct sm_fg_chip *sm)
 		pr_err("[SM5602]Failed to write SM_FG_REG_CURR_SLOPE, ret = %d\n", ret);
 		return ret;
 	} else {
-		pr_err("[SM5602]write SM_FG_REG_CURR_SLOPE [0x%x] = 0x%x\n", SM_FG_REG_CURR_SLOPE, sm->curr_vslope);
+		pr_err("[SM5602]write SM_FG_REG_CURR_SLOPE [0x%x] = 0x%x\n", sm->regs[SM_FG_REG_CURR_SLOPE], sm->curr_vslope);
 	}
 
 	ret |= fg_read_word(sm, 0x00, &data[0]);
@@ -4397,6 +4397,8 @@ static void sm_fg_shutdown(struct i2c_client *client)
 	if (sm) {
 		pr_info("[SM5602]mode change to shutdown mode in fg_shutdown\n");
 		fg_write_word(sm, FG_REG_RS_2, sm->rs_value[2]);
+		fg_write_word(sm, sm->regs[SM_FG_REG_CURR_SLOPE], 0x8010);
+		fg_write_word(sm, FG_REG_CURR_IN_OFFSET, 0x0094);
 	}
 	pr_info("[SM5602]sm fuel gauge driver shutdown!\n");
 }
