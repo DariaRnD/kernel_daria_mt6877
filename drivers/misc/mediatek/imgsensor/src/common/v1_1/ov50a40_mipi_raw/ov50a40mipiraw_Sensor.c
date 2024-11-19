@@ -256,7 +256,7 @@ static struct imgsensor_info_struct imgsensor_info = {
 	.mclk = 24,
 	
 	.mipi_lane_num = SENSOR_MIPI_3_LANE,
-	.i2c_addr_table = {0x20,0xff},
+	.i2c_addr_table = {0x20,0x6c,0xff},
 	.i2c_speed = 1000,// i2c read/write speed
 	.mipi_hs_taril_value = 100 , // prize add by zhuzhengjiang for mipi hs_trail_value 20210619
 };
@@ -755,6 +755,7 @@ static kal_uint32 get_imgsensor_id(UINT32 *sensor_id)
 		spin_unlock(&imgsensor_drv_lock);
 		do {
 			*sensor_id = return_sensor_id();
+			printk("get_imgsensor_id return sensor_id =0x%x\n",*sensor_id);
 			if (*sensor_id == imgsensor_info.sensor_id) {
 				pr_info("i2c write id: 0x%x, sensor id: 0x%x\n",
 					imgsensor.i2c_write_id, *sensor_id);

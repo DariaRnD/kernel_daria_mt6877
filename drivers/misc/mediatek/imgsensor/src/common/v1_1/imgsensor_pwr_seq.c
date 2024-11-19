@@ -1589,6 +1589,21 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 // prize add by linchong 20220228 end
 /*prize add by zhuzhengjaing start*/
 #if defined(OV50A40_MIPI_RAW)
+	#ifdef spin
+		{
+			SENSOR_DRVNAME_OV50A40_MIPI_RAW,
+			{
+				{SensorMCLK, Vol_High, 0},
+				{RST, Vol_Low, 5},
+				{AVDD, Vol_2800, 5},
+				{DOVDD, Vol_1800, 5},
+				{PDN, Vol_High, 0},
+				{DVDD, Vol_1100, 2},
+				{AFVDD, Vol_2800, 3},
+				{RST, Vol_High, 5}
+			},
+		},
+	#else
 		{
 			SENSOR_DRVNAME_OV50A40_MIPI_RAW,
 			{
@@ -1602,6 +1617,7 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 				{AFVDD, Vol_2800, 1},
 			},
 		},
+	#endif
 #endif
 #if defined(OV50D40_MIPI_RAW)
 		{
