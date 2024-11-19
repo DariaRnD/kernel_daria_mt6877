@@ -22,7 +22,7 @@
         focaltech,reset-gpio = <&pio 15 0>;
         focaltech,irq-gpio = <&pio 14 02>;
         focaltech,max-touch-number = <10>;
-        focaltech,display-coords =  <0 0 1080 2436>;
+        focaltech,display-coords =  <0 0 1079 2435>;
     };
 };
 &pio {
