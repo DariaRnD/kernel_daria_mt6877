@@ -6309,6 +6309,12 @@ static void mtk_dsi_timing_change(struct mtk_dsi *dsi,
 		mtk_dsi_vdo_timing_change(dsi, mtk_crtc, old_state);
 }
 
+#if IS_ENABLED(CONFIG_TOUCHSCREEN_FTS_FT3519)
+/* pri add tp esd X91NF-268 20241025 start */
+extern int lcd_esdcheck_to_tp_reset(void);
+/* pri add tp esd X91NF-268 20241025 end */
+#endif
+
 static int mtk_dsi_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 			  enum mtk_ddp_io_cmd cmd, void *params)
 {
@@ -6353,6 +6359,11 @@ static int mtk_dsi_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 		break;
 	case CONNECTOR_PANEL_ENABLE:
 		mtk_output_dsi_enable(dsi, true);
+#if IS_ENABLED(CONFIG_TOUCHSCREEN_FTS_FT3519)
+		/* pri add tp esd X91NF-268 20241025 start */
+		lcd_esdcheck_to_tp_reset();
+		/* pri add tp esd X91NF-268 20241025 end */
+#endif
 		break;
 	case CONNECTOR_PANEL_DISABLE:
 	{

@@ -936,7 +936,7 @@ static int fts_input_report_touch(struct fts_ts_data *ts_data, u8 *touch_buf)
 
     for (i = 0; i < max_touch_num; i++) {
         base = FTS_ONE_TCH_LEN * i + 2;
-        pointid = (touch_buf[FTS_TOUCH_OFF_ID_YH + base]) >> 4;
+        pointid = (touch_buf[FTS_TOUCH_OFF_PRE + base]) >> 4;
         if (pointid >= FTS_MAX_ID)
             break;
         else if (pointid >= max_touch_num) {
@@ -945,30 +945,27 @@ static int fts_input_report_touch(struct fts_ts_data *ts_data, u8 *touch_buf)
         }
 
         events[i].id = pointid;
-        events[i].flag = touch_buf[FTS_TOUCH_OFF_E_XH + base] >> 6;
+        events[i].flag = touch_buf[FTS_TOUCH_OFF_AREA + base] >> 6;
+        events[i].x = ((touch_buf[FTS_TOUCH_OFF_E_XH + base] & 0xFF) << 8) \
+                      + (touch_buf[FTS_TOUCH_OFF_XL + base] & 0xFF);
+        events[i].y = ((touch_buf[FTS_TOUCH_OFF_ID_YH + base] & 0xFF) << 8) \
+                      + (touch_buf[FTS_TOUCH_OFF_YL + base] & 0xFF);
 #if FTS_TOUCH_HIRES_EN
-        events[i].x = ((touch_buf[FTS_TOUCH_OFF_E_XH + base] & 0x0F) << 12) \
-                      + ((touch_buf[FTS_TOUCH_OFF_XL + base] & 0xFF) << 4) \
-                      + ((touch_buf[FTS_TOUCH_OFF_PRE + base] >> 4) & 0x0F);
-        events[i].y = ((touch_buf[FTS_TOUCH_OFF_ID_YH + base] & 0x0F) << 12) \
-                      + ((touch_buf[FTS_TOUCH_OFF_YL + base] & 0xFF) << 4) \
-                      + (touch_buf[FTS_TOUCH_OFF_PRE + base] & 0x0F);
-        events[i].x = (events[i].x * FTS_TOUCH_HIRES_X ) / FTS_HI_RES_X_MAX;
-        events[i].y = (events[i].y * FTS_TOUCH_HIRES_X ) / FTS_HI_RES_X_MAX;
-        events[i].p = 0x3F;
+        events[i].x = (events[i].x * FTS_TOUCH_HIRES_X) / FTS_HI_RES_X_MAX;
+        events[i].y = (events[i].y * FTS_TOUCH_HIRES_X) / FTS_HI_RES_X_MAX;
 #if FTS_REPORT_PRESSURE_EN
         FTS_ERROR("high solution project doesn't support pressure property");
 #endif
-#else
-        events[i].x = ((touch_buf[FTS_TOUCH_OFF_E_XH + base] & 0x0F) << 8) \
-                      + (touch_buf[FTS_TOUCH_OFF_XL + base] & 0xFF);
-        events[i].y = ((touch_buf[FTS_TOUCH_OFF_ID_YH + base] & 0x0F) << 8) \
-                      + (touch_buf[FTS_TOUCH_OFF_YL + base] & 0xFF);
-        events[i].p =  touch_buf[FTS_TOUCH_OFF_PRE + base];
-        if (events[i].p <= 0) events[i].p = 0x3F;
 #endif
-        events[i].area = touch_buf[FTS_TOUCH_OFF_AREA + base];
-        if (events[i].area <= 0) events[i].area = 0x09;
+        events[i].p =  touch_buf[FTS_TOUCH_OFF_PRE + base] & 0xF;
+        events[i].area = touch_buf[FTS_TOUCH_OFF_AREA + base] & 0x3F;
+
+        if (events[i].p <= 0) {
+            events[i].p = 0x3F;
+        }
+        if (events[i].area <= 0) {
+            events[i].area = 0x09;
+        }
         events[i].minor = events[i].area;
 
         event_num++;

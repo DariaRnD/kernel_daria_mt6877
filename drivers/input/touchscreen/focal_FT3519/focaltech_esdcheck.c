@@ -118,6 +118,24 @@ int idc_esdcheck_lcderror(struct fts_ts_data *ts_data)
 }
 #endif
 
+/* pri add tp esd X91NF-268 20241025 start */
+int lcd_esdcheck_to_tp_reset(void)
+{
+    FTS_FUNC_ENTER();
+
+    fts_esdcheck_data.flow_work_hold_cnt = 0;
+    fts_esdcheck_data.hardware_reset_cnt++;
+
+    fts_reset_proc(fts_data, false, 200);
+    fts_release_all_finger();
+    fts_tp_state_recovery(fts_data);
+
+    FTS_FUNC_EXIT();
+    return 0;
+}
+EXPORT_SYMBOL(lcd_esdcheck_to_tp_reset);
+/* pri add tp esd X91NF-268 20241025 end */
+
 static int fts_esdcheck_tp_reset(struct fts_ts_data *ts_data)
 {
     FTS_FUNC_ENTER();
