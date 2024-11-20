@@ -735,8 +735,7 @@ struct mtk_drm_crtc {
 	atomic_t cmdq_done;
 	wait_queue_head_t signal_fence_task_wq;
 
-	bool hbm_requested;
-	int hbm_old_bl;
+	bool fcal_requested;
 };
 
 struct mtk_crtc_state {
@@ -764,6 +763,14 @@ struct mtk_cmdq_cb_data {
 	struct cmdq_pkt			*cmdq_handle;
 	struct drm_crtc			*crtc;
 	unsigned int misc;
+};
+
+enum hbm_request_type {
+	// This should be used for normal HBM request.
+	HBM_NORMAL,
+	// This is only for use in HBM request for fingerprint.
+	// If the panel support Local HBM, it should enter that mode.
+	HBM_FINGERPRINT,
 };
 
 extern unsigned int te_cnt;
@@ -900,7 +907,7 @@ void mtk_crtc_dual_layer_config(struct mtk_drm_crtc *mtk_crtc,
 		struct mtk_ddp_comp *comp, unsigned int idx,
 		struct mtk_plane_state *plane_state, struct cmdq_pkt *cmdq_handle);
 unsigned int dual_pipe_comp_mapping(unsigned int comp_id);
-int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, bool en);
+int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, enum hbm_request_type type, bool en);
 int mtk_drm_crtc_hbm_wait(struct drm_crtc *crtc, bool en);
 /* ********************* Legacy DISP API *************************** */
 unsigned int DISP_GetScreenWidth(void);

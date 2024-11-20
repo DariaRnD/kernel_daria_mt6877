@@ -6665,6 +6665,28 @@ static int mtk_dsi_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 			DDPINFO("%s: DSI_HBM_WAIT failed\n", __func__);
 		break;
 	}
+	case DSI_HBM_FP_GET_STATE:
+	{
+		panel_ext = mtk_dsi_get_panel_ext(comp);
+		if (!(panel_ext && panel_ext->funcs &&
+		      panel_ext->funcs->hbm_fp_get_state))
+			break;
+
+		panel_ext->funcs->hbm_fp_get_state(dsi->panel, (bool *)params);
+		break;
+	}
+	case DSI_HBM_FP_SET:
+	{
+		panel_ext = mtk_dsi_get_panel_ext(comp);
+		if (!(panel_ext && panel_ext->funcs &&
+		      panel_ext->funcs->hbm_fp_set_cmdq))
+			break;
+
+		panel_ext->funcs->hbm_fp_set_cmdq(dsi->panel, dsi,
+						  mipi_dsi_dcs_write_gce, handle,
+						  *(bool *)params);
+		break;
+	}
 	case LCM_ATA_CHECK:
 	{
 		struct mtk_dsi *dsi =
@@ -6838,18 +6860,6 @@ static int mtk_dsi_io_cmd(struct mtk_ddp_comp *comp, struct cmdq_pkt *handle,
 // Misc
 extern int mtk_drm_setbacklight(struct drm_crtc *crtc, unsigned int level);
 
-static int hbm_stat(struct drm_crtc *crtc, bool stat) {
-	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
-	int ret = 0;
-
-	ret = mtk_drm_crtc_set_panel_hbm(crtc, stat);
-	if (ret)
-		return ret;
-	mtk_crtc->hbm_requested = stat;
-
-	return ret;
-}
-
 // Sysfs
 // HBM
 static ssize_t hbm_show(struct device *dev, struct device_attribute *attr,
@@ -6879,7 +6889,7 @@ static ssize_t hbm_store(struct device *dev, struct device_attribute *attr,
 	if (ret)
 		return ret;
 
-	ret = hbm_stat(crtc, hbm_en);
+	ret = mtk_drm_crtc_set_panel_hbm(crtc, HBM_NORMAL, hbm_en);
 	if (ret)
 		return ret;
 
@@ -6894,6 +6904,7 @@ static ssize_t fcal_store(struct device *dev, struct device_attribute *attr,
 {
 	struct mtk_dsi *dsi = dev_get_drvdata(dev);
 	struct drm_crtc *crtc = dsi->encoder.crtc;
+	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	int val, ret = 0;
 
 	if (kstrtoint(buf, 10, &val))
@@ -6901,11 +6912,13 @@ static ssize_t fcal_store(struct device *dev, struct device_attribute *attr,
 
 	switch (val) {
 		case 270: {
-			hbm_stat(crtc, false);
+			mtk_drm_crtc_set_panel_hbm(crtc, HBM_FINGERPRINT, false);
+			mtk_crtc->fcal_requested = false;
 			break;
 		}
 		case 260: {
-			hbm_stat(crtc, true);
+			mtk_drm_crtc_set_panel_hbm(crtc, HBM_FINGERPRINT, true);
+			mtk_crtc->fcal_requested = true;
 			break;
 		}
 		case 255: {

@@ -758,8 +758,6 @@ int mtk_drm_setbacklight(struct drm_crtc *crtc, unsigned int level)
 	}
 
 	/* set backlight */
-	if (!mtk_crtc->hbm_requested)
-		mtk_crtc->hbm_old_bl = level;
 	if (comp->funcs && comp->funcs->io_cmd)
 		comp->funcs->io_cmd(comp, cmdq_handle, DSI_SET_BL, &level);
 
@@ -977,7 +975,7 @@ int mtk_drm_aod_setbacklight(struct drm_crtc *crtc, unsigned int level)
 	return 0;
 }
 
-int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, bool en)
+int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, enum hbm_request_type type, bool en)
 {
 	struct mtk_drm_crtc *mtk_crtc = to_mtk_crtc(crtc);
 	struct mtk_ddp_comp *comp = mtk_ddp_comp_request_output(mtk_crtc);
@@ -988,7 +986,13 @@ int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, bool en)
 	if (!(comp && comp->funcs && comp->funcs->io_cmd))
 		return -EINVAL;
 
-	comp->funcs->io_cmd(comp, NULL, DSI_HBM_GET_STATE, &state);
+	if (type == HBM_NORMAL)
+		comp->funcs->io_cmd(comp, NULL, DSI_HBM_GET_STATE, &state);
+	else if (type == HBM_FINGERPRINT)
+		comp->funcs->io_cmd(comp, NULL, DSI_HBM_FP_GET_STATE, &state);
+	else
+		return -EINVAL;
+
 	if (state == en)
 		return 0;
 
@@ -1016,7 +1020,10 @@ int mtk_drm_crtc_set_panel_hbm(struct drm_crtc *crtc, bool en)
 				mtk_crtc->gce_obj.event[EVENT_STREAM_DIRTY]);
 	}
 
-	comp->funcs->io_cmd(comp, cmdq_handle, DSI_HBM_SET, &en);
+	if (type == HBM_NORMAL)
+		comp->funcs->io_cmd(comp, cmdq_handle, DSI_HBM_SET, &en);
+	else if (type == HBM_FINGERPRINT)
+		comp->funcs->io_cmd(comp, cmdq_handle, DSI_HBM_FP_SET, &en);
 
 	if (is_frame_mode) {
 		cmdq_pkt_set_event(cmdq_handle,
@@ -6497,11 +6504,11 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 	if (pending_planes)
 		mtk_crtc->pending_planes = true;
 
-	if (mtk_drm_helper_get_opt(priv->helper_opt, MTK_DRM_OPT_HBM) || mtk_crtc->hbm_requested) {
-		bool hbm_en = false;
+	if (mtk_drm_helper_get_opt(priv->helper_opt, MTK_DRM_OPT_HBM)) {
+		bool hbm_en = ((bool)state->prop_val[CRTC_PROP_HBM_ENABLE] || mtk_crtc->fcal_requested);
 
-		hbm_en = (bool)state->prop_val[CRTC_PROP_HBM_ENABLE] || mtk_crtc->hbm_requested;
-		mtk_drm_crtc_set_panel_hbm(crtc, hbm_en);
+		// When HBM enable via layer or fcal requested, use fingerprint HBM.
+		mtk_drm_crtc_set_panel_hbm(crtc, HBM_FINGERPRINT, hbm_en);
 		mtk_drm_crtc_hbm_wait(crtc, hbm_en);
 
 		if (!state->prop_val[CRTC_PROP_DOZE_ACTIVE])

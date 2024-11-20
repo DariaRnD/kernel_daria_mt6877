@@ -359,6 +359,11 @@ struct mtk_panel_funcs {
 	void (*hbm_get_state)(struct drm_panel *panel, bool *state);
 	void (*hbm_get_wait_state)(struct drm_panel *panel, bool *wait);
 	bool (*hbm_set_wait_state)(struct drm_panel *panel, bool wait);
+
+	int (*hbm_fp_set_cmdq)(struct drm_panel *panel, void *dsi_drv,
+			    dcs_write_gce cb, void *handle, bool en);
+	void (*hbm_fp_get_state)(struct drm_panel *panel, bool *wait);
+
 };
 
 void mtk_panel_init(struct mtk_panel_ctx *ctx);
