@@ -70,7 +70,7 @@ struct lcm {
 	bool prepared;
 	bool enabled;
 
-	bool hbm_en;
+	bool lhbm_en;
 
 	unsigned int bl_level;
 	atomic_t reg_level;
@@ -321,7 +321,7 @@ static int lcm_unprepare(struct drm_panel *panel)
 	//prize add by wangfei for ldo 1.8 20210709 end
 
 
-	ctx->hbm_en = false;
+	ctx->lhbm_en = false;
 	return 0;
 }
 
@@ -547,7 +547,7 @@ unsigned int lhbm_for_gain[] = {
 4048, 4060, 4060, 4076, 4080, 4084, 4088, 4096
 };
 
-static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
+static int panel_lhbm_set_cmdq(struct drm_panel *panel, void *dsi,
 			      dcs_write_gce cb, void *handle, bool en)
 {
 	char hbm_tb0[] = {0x63, 0x10, 0x00, 0x07, 0xFF};
@@ -559,12 +559,12 @@ static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
 	if (!cb)
 		return -1;
 
-	if (ctx->hbm_en == en)
+	if (ctx->lhbm_en == en)
 		goto done;
 
 	if (en)
 	{
-		printk("[panel] %s : set HBM, trans_level:%d\n",__func__,trans_level);
+		printk("[panel] %s : set LHBM, trans_level:%d\n",__func__,trans_level);
 
 		if (trans_level >= 335) {
 			hbm_tb0[1] = 0x10;
@@ -584,22 +584,22 @@ static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
 	}
 	else
 	{
-		printk("[panel] %s : out HBM mode\n",__func__);
+		printk("[panel] %s : out LHBM mode\n",__func__);
 
 		cb(dsi, handle, normal_tb, ARRAY_SIZE(normal_tb));
 	}
 
-	ctx->hbm_en = en;
+	ctx->lhbm_en = en;
 
  done:
 	return 0;
 }
 
-static void panel_hbm_get_state(struct drm_panel *panel, bool *state)
+static void panel_lhbm_get_state(struct drm_panel *panel, bool *state)
 {
 	struct lcm *ctx = panel_to_lcm(panel);
 
-	*state = ctx->hbm_en;
+	*state = ctx->lhbm_en;
 }
 
 static int lcm_get_virtual_heigh(void)
@@ -895,8 +895,8 @@ static struct mtk_panel_funcs ext_funcs = {
 	.reset = panel_ext_reset,
 	.set_backlight_cmdq = lcm_setbacklight_cmdq,
 	.ata_check = panel_ata_check,
-	.hbm_set_cmdq = panel_hbm_set_cmdq,
-	.hbm_get_state = panel_hbm_get_state,
+	.hbm_fp_set_cmdq = panel_lhbm_set_cmdq,
+	.hbm_fp_get_state = panel_lhbm_get_state,
 	.get_virtual_heigh = lcm_get_virtual_heigh,
 	.get_virtual_width = lcm_get_virtual_width,
 	.ext_param_set = mtk_panel_ext_param_set,
@@ -1079,7 +1079,7 @@ static int lcm_probe(struct mipi_dsi_device *dsi)
 	//add by wangfei
 	// lcm_panel_init(ctx);
 	g_ctx = ctx;
-	ctx->hbm_en = false;
+	ctx->lhbm_en = false;
 
 #if defined(CONFIG_PRIZE_HARDWARE_INFO)
     strcpy(current_lcm_info.chip,"vtdr6126.vdo");
