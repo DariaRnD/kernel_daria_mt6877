@@ -71,8 +71,10 @@ struct lcm {
 	bool enabled;
 
 	bool lhbm_en;
+	bool hbm_en;
 
 	unsigned int bl_level;
+	unsigned int restore_level;
 	atomic_t reg_level;
 
 	int error;
@@ -490,11 +492,16 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 	char hbm_tb[] = {0x51,0x0F,0xFF};
 	unsigned int reg_level = 0;
 
-	if (level && level <= BRIGHTNESS_HALF) {
-		reg_level = Gamma_to_level[level];
-		atomic_set(&g_ctx->reg_level, reg_level);
-	}
+	if (level < 0 && level > BRIGHTNESS_HALF)
+		return -1;
 
+	reg_level = Gamma_to_level[level];
+	g_ctx->restore_level = reg_level;
+
+	if (g_ctx->hbm_en)
+		return 0;
+
+	atomic_set(&g_ctx->reg_level, reg_level);
 	g_ctx->bl_level = level;
 	bl_tb0[1] = (reg_level>>8)&0xf;
 	bl_tb0[2] = (reg_level)&0xff;
@@ -517,6 +524,42 @@ unsigned short led_level_disp_get(char *name)
 }
 EXPORT_SYMBOL(led_level_disp_get);
 //prize add by gongtaitao for sensorhub get backlight 20221028 end
+
+static int panel_hbm_set_cmdq(struct drm_panel *panel, void *dsi,
+			      dcs_write_gce cb, void *handle, bool en)
+{
+	struct lcm *ctx = panel_to_lcm(panel);
+	char hbm_tb[] = {0x51,0x0F,0xFF}; // 4095
+	unsigned int restore_level = ctx->restore_level;
+
+	if (!cb || !ctx)
+		return -1;
+
+	if (en == ctx->hbm_en)
+		return 0;
+
+	if (en) {
+		ctx->bl_level = BRIGHTNESS_FULL;
+		ctx->hbm_en = true;
+		atomic_set(&ctx->reg_level, BRIGHTNESS_FULL);
+	} else {
+		hbm_tb[1] = (restore_level>>8)&0xf;
+		hbm_tb[2] = (restore_level)&0xff;
+		ctx->bl_level = restore_level;
+		ctx->hbm_en = false;
+		atomic_set(&g_ctx->reg_level, restore_level);
+	}
+
+	cb(dsi, handle, hbm_tb, ARRAY_SIZE(hbm_tb));
+	return 0;
+}
+
+static void panel_hbm_get_state(struct drm_panel *panel, bool *state)
+{
+	struct lcm *ctx = panel_to_lcm(panel);
+
+	*state = ctx->hbm_en;
+}
 
 unsigned int lhbm_for_gain[] = {
 0, 727, 751, 767, 787, 803, 819, 839, 855, 875, 900, 924, 940, 964, 984, 1000,
@@ -895,6 +938,8 @@ static struct mtk_panel_funcs ext_funcs = {
 	.reset = panel_ext_reset,
 	.set_backlight_cmdq = lcm_setbacklight_cmdq,
 	.ata_check = panel_ata_check,
+	.hbm_set_cmdq = panel_hbm_set_cmdq,
+	.hbm_get_state = panel_hbm_get_state,
 	.hbm_fp_set_cmdq = panel_lhbm_set_cmdq,
 	.hbm_fp_get_state = panel_lhbm_get_state,
 	.get_virtual_heigh = lcm_get_virtual_heigh,
