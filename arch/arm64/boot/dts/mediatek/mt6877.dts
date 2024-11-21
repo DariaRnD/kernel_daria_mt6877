@@ -6933,3 +6933,10 @@
 #include "mediatek/pca_pps_ta.dtsi"
 #endif
 
+#ifdef CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT
+#ifdef CONFIG_CHARGER_SPIN
+#include "mediatek/mtk_pe50_spin.dtsi"
+#else
+#include "mediatek/mtk_pe50.dtsi"
+#endif
+#endif

@@ -681,8 +681,5 @@
 #include "spin/cust.dtsi"
 #include "mediatek/cust_spin_touch_1080x2400.dtsi"
 #include "mediatek/cust_spin_camera.dtsi"
-#ifdef CONFIG_MTK_PUMP_EXPRESS_50_SUPPORT
-#include "mediatek/mtk_pe50_spin.dtsi"
-#endif
 /*End of this file, DO NOT ADD ANYTHING HERE*/
 
