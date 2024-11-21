@@ -152,15 +152,17 @@ static void lcm_panel_get_data(struct lcm *ctx)
 /*PRIZE:Added by lvyuanchuan,X9-678,20221230 start*/
 static void lcm_pannel_reconfig_blk(struct lcm *ctx)
 {
-	char bl_tb0[] = {0x51,0x07,0xFF};
+	char bl_tb0[] = {0x51,0x0F,0xFF}; // 4095
 	unsigned int reg_level = 0;
 	if (mtk_drm_esd_check_status()) {
 		/*PRIZE:Added by lvyuanchuan,X9-534,20230103*/
-		if(ctx->bl_level)
-			reg_level = Gamma_to_level[ctx->bl_level];
+		if (!ctx->hbm_en) {
+			if (ctx->bl_level)
+				reg_level = Gamma_to_level[ctx->bl_level];
 
-		bl_tb0[1] = (reg_level>>8)&0xf;
-		bl_tb0[2] = (reg_level)&0xff;
+			bl_tb0[1] = (reg_level>>8)&0xf;
+			bl_tb0[2] = (reg_level)&0xff;
+		}
 		lcm_dcs_write(ctx,bl_tb0,ARRAY_SIZE(bl_tb0));
 		mtk_drm_esd_set_status(0);
 	}
@@ -323,7 +325,6 @@ static int lcm_unprepare(struct drm_panel *panel)
 	//prize add by wangfei for ldo 1.8 20210709 end
 
 
-	ctx->lhbm_en = false;
 	return 0;
 }
 
@@ -498,8 +499,10 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 	reg_level = Gamma_to_level[level];
 	g_ctx->restore_level = reg_level;
 
-	if (g_ctx->hbm_en)
+	if (g_ctx->hbm_en) {
+		cb(dsi, handle, hbm_tb, ARRAY_SIZE(hbm_tb));
 		return 0;
+	}
 
 	atomic_set(&g_ctx->reg_level, reg_level);
 	g_ctx->bl_level = level;
@@ -518,7 +521,11 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 unsigned short led_level_disp_get(char *name)
 {
     int trans_level = 0;
-	trans_level = Gamma_to_level[g_ctx->bl_level];
+	if (g_ctx->bl_level > BRIGHTNESS_HALF)
+		trans_level = g_ctx->bl_level;
+	else
+		trans_level = Gamma_to_level[g_ctx->bl_level];
+
 	pr_err("[%s]: name: %s, level : %d",__func__, name, trans_level);
 	return trans_level;
 }
