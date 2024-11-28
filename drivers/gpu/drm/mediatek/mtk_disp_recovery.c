@@ -34,7 +34,11 @@
 #include "mtk_dsi.h"
 #endif
 
+#if IS_ENABLED(CONFIG_TOUCHSCREEN_FTS_FT3519)
+#define ESD_TRY_CNT 10 /*modify ESD check times*/
+#else
 #define ESD_TRY_CNT 5
+#endif
 #define ESD_CHECK_PERIOD 2000 /* ms */
 
 /* pinctrl implementation */
