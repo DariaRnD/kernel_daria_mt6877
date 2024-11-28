@@ -6471,6 +6471,7 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 	struct mtk_cmdq_cb_data *cb_data;
 	struct mtk_ddp_comp *comp;
 	struct mtk_drm_crtc *mtk_crtc0 = to_mtk_crtc(priv->crtc[0]);
+	struct mtk_panel_params *panel_ext = mtk_drm_get_lcm_ext_params(crtc);
 
 	CRTC_MMP_EVENT_START(index, atomic_flush, (unsigned long)crtc_state,
 			(unsigned long)old_crtc_state);
@@ -6511,7 +6512,7 @@ static void mtk_drm_crtc_atomic_flush(struct drm_crtc *crtc,
 		mtk_drm_crtc_set_panel_hbm(crtc, HBM_FINGERPRINT, hbm_en);
 		mtk_drm_crtc_hbm_wait(crtc, hbm_en);
 
-		if (!state->prop_val[CRTC_PROP_DOZE_ACTIVE])
+		if (!panel_ext->is_lhbm && !state->prop_val[CRTC_PROP_DOZE_ACTIVE])
 			mtk_atomic_hbm_bypass_pq(crtc, cmdq_handle, hbm_en);
 	}
 

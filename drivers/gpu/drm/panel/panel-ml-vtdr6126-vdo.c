@@ -736,6 +736,7 @@ static struct mtk_panel_params ext_params_120 = {
 		.switch_en = 1,
 		.data_rate = MODE_2_DATA_RATE,
 	},
+	.is_lhbm = true,
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,
@@ -817,6 +818,7 @@ static struct mtk_panel_params ext_params_90 = {
 		.switch_en = 1,
 		.data_rate = MODE_1_DATA_RATE,
 	},
+	.is_lhbm = true,
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,
@@ -900,6 +902,7 @@ static struct mtk_panel_params ext_params = {
 		.switch_en = 1,
 		.data_rate = MODE_0_DATA_RATE,
 	},
+	.is_lhbm = true,
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
 	.round_corner_en = 1,
 	.corner_pattern_height = ROUND_CORNER_H_TOP,
