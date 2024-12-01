@@ -265,6 +265,7 @@ struct fts_ts_data {
     bool gesture_support;   /* gesture enable or disable, default: disable */
     u8 gesture_bmode;       /*gesture buffer mode*/
 
+    bool single_tap_pressed;
     bool double_tap_pressed;
     bool fod_fp_down;
     int edgepalm_value;

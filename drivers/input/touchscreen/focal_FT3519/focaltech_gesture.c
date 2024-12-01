@@ -45,6 +45,7 @@
 #define GESTURE_RIGHT                           0x21
 #define GESTURE_UP                              0x22
 #define GESTURE_DOWN                            0x23
+#define GESTURE_SINGLECLICK                     0x25
 #define GESTURE_DOUBLECLICK                     0x24
 #define GESTURE_O                               0x30
 #define GESTURE_W                               0x31
@@ -238,6 +239,16 @@ static ssize_t fts_gesture_bm_store(
     return count;
 }
 
+static ssize_t fts_gesture_single_tap_pressed_show(
+    struct kobject *kobj, struct kobj_attribute *attr,
+            char *buf)
+{
+    struct fts_ts_data *ts_data = fts_data;
+
+    return snprintf(buf, PAGE_SIZE, "%d\n",
+                     ts_data->single_tap_pressed);
+}
+
 static ssize_t fts_gesture_double_tap_pressed_show(
     struct kobject *kobj, struct kobj_attribute *attr,
 			char *buf)
@@ -257,6 +268,10 @@ static ssize_t fts_gesture_fod_pressed_show(
     return snprintf(buf, PAGE_SIZE, "%d\n",
                      ts_data->fod_fp_down);
 }
+
+static struct tp_common_ops tp_common_single_tap_pressed_ops = {
+    .show = fts_gesture_single_tap_pressed_show,
+};
 
 static struct tp_common_ops tp_common_double_tap_pressed_ops = {
     .show = fts_gesture_double_tap_pressed_show,
@@ -304,6 +319,10 @@ static void fts_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 {
     FTS_DEBUG("gesture_id:0x%x", gesture_id);
     switch (gesture_id) {
+    case GESTURE_SINGLECLICK:
+        ts_data->single_tap_pressed = true;
+        sysfs_notify(touchpanel_kobj, NULL, "single_tap_pressed");
+        break;
     case GESTURE_DOUBLECLICK:
         ts_data->double_tap_pressed = true;
         sysfs_notify(touchpanel_kobj, NULL, "double_tap_pressed");
@@ -585,6 +604,11 @@ static int fts_gesture_tp_common_init(struct fts_ts_data *ts_data)
     int ret = 0;
 
     /* gesture pressed */
+    ret = tp_common_set_single_tap_pressed_ops(&tp_common_single_tap_pressed_ops);
+    if (ret) {
+        FTS_ERROR("set single_tap_pressed ops fail");
+        return ret;
+    }
     ret = tp_common_set_double_tap_pressed_ops(&tp_common_double_tap_pressed_ops);
     if (ret) {
         FTS_ERROR("set double_tap_pressed ops fail");
@@ -599,6 +623,11 @@ static int fts_gesture_tp_common_init(struct fts_ts_data *ts_data)
     #endif
 
     /* gesture enabled */
+    ret = tp_common_set_single_tap_enabled_ops(&tp_common_double_tap_enabled_ops);
+    if (ret) {
+        FTS_ERROR("set gesture_enabled ops fail");
+        return ret;
+    }
     ret = tp_common_set_double_tap_enabled_ops(&tp_common_double_tap_enabled_ops);
     if (ret) {
         FTS_ERROR("set gesture_enabled ops fail");
