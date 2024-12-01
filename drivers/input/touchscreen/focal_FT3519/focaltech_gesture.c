@@ -34,6 +34,10 @@
 *****************************************************************************/
 #include "focaltech_core.h"
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+#include <linux/input/tp_common.h>
+#endif
+
 /******************************************************************************
 * Private constant and macro definitions using #define
 *****************************************************************************/
@@ -87,10 +91,11 @@ static struct fts_gesture_st fts_gesture_data;
 * Static function prototypes
 *****************************************************************************/
 static ssize_t fts_gesture_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
     int count = 0;
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     mutex_lock(&ts_data->gesture_lock);
     count = snprintf(buf, PAGE_SIZE, "%d\n", ts_data->gesture_support);
@@ -100,10 +105,10 @@ static ssize_t fts_gesture_show(
 }
 
 static ssize_t fts_gesture_store(
-    struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			 const char *buf, size_t count)
 {
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     if (ts_data->suspended) {
         FTS_INFO("In suspend,not operation gesture mode!");
@@ -122,13 +127,19 @@ static ssize_t fts_gesture_store(
     return count;
 }
 
+static struct tp_common_ops tp_common_double_tap_enabled_ops = {
+    .show = fts_gesture_show,
+    .store = fts_gesture_store,
+};
+
 #if FTS_FOD_EN
 /* fts_fod_mode node */
 static ssize_t fts_fod_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
     int count = 0;
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     mutex_lock(&ts_data->gesture_lock);
     count = snprintf(buf, PAGE_SIZE, "%d\n", ts_data->fod_mode);
@@ -138,10 +149,10 @@ static ssize_t fts_fod_show(
 }
 
 static ssize_t fts_fod_store(
-    struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			 const char *buf, size_t count)
 {
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     mutex_lock(&ts_data->gesture_lock);
     if (FTS_SYSFS_ECHO_ON(buf)) {
@@ -153,6 +164,11 @@ static ssize_t fts_fod_store(
 
     return count;
 }
+
+static struct tp_common_ops tp_common_fod_enabled_ops = {
+    .show = fts_fod_show,
+    .store = fts_fod_store,
+};
 #endif
 
 static ssize_t fts_gesture_buf_show(
@@ -223,34 +239,33 @@ static ssize_t fts_gesture_bm_store(
 }
 
 static ssize_t fts_gesture_double_tap_pressed_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     return snprintf(buf, PAGE_SIZE, "%d\n",
                      ts_data->double_tap_pressed);
 }
 
 static ssize_t fts_gesture_fod_pressed_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
+    struct kobject *kobj, struct kobj_attribute *attr,
+			char *buf)
 {
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
+    struct fts_ts_data *ts_data = fts_data;
 
     return snprintf(buf, PAGE_SIZE, "%d\n",
                      ts_data->fod_fp_down);
 }
 
-/* sysfs gesture node
- *   read example: cat  fts_gesture_mode       ---read gesture mode
- *   write example:echo 1 > fts_gesture_mode   --- write gesture mode to 1
- *
- */
-static DEVICE_ATTR(fts_gesture_mode, S_IRUGO | S_IWUSR, fts_gesture_show,
-                   fts_gesture_store);
-#if FTS_FOD_EN
-static DEVICE_ATTR(fts_fod_mode, S_IRUGO | S_IWUSR, fts_fod_show,
-                    fts_fod_store);
-#endif
+static struct tp_common_ops tp_common_double_tap_pressed_ops = {
+    .show = fts_gesture_double_tap_pressed_show,
+};
+
+static struct tp_common_ops tp_common_fod_pressed_ops = {
+    .show = fts_gesture_fod_pressed_show,
+};
+
 /*
  *   read example: cat fts_gesture_buf        --- read gesture buf
  */
@@ -260,24 +275,9 @@ static DEVICE_ATTR(fts_gesture_buf, S_IRUGO | S_IWUSR,
 static DEVICE_ATTR(fts_gesture_bm, S_IRUGO | S_IWUSR,
                    fts_gesture_bm_show, fts_gesture_bm_store);
 
-/*
- * gesture pressed status
- */
-static DEVICE_ATTR(double_tap_pressed, S_IRUGO,
-                   fts_gesture_double_tap_pressed_show, NULL);
-
-static DEVICE_ATTR(fod_pressed, S_IRUGO,
-                   fts_gesture_fod_pressed_show, NULL);
-
 static struct attribute *fts_gesture_mode_attrs[] = {
-    &dev_attr_fts_gesture_mode.attr,
-#if FTS_FOD_EN
-    &dev_attr_fts_fod_mode.attr,
-#endif
     &dev_attr_fts_gesture_buf.attr,
     &dev_attr_fts_gesture_bm.attr,
-    &dev_attr_double_tap_pressed.attr,
-    &dev_attr_fod_pressed.attr,
     NULL,
 };
 
@@ -299,27 +299,29 @@ static int fts_create_gesture_sysfs(struct device *dev)
     return 0;
 }
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
 static void fts_gesture_report(struct fts_ts_data *ts_data, int gesture_id)
 {
     FTS_DEBUG("gesture_id:0x%x", gesture_id);
     switch (gesture_id) {
     case GESTURE_DOUBLECLICK:
         ts_data->double_tap_pressed = true;
-        sysfs_notify(&ts_data->dev->kobj, NULL, "double_tap_pressed");
+        sysfs_notify(touchpanel_kobj, NULL, "double_tap_pressed");
         break;
     case GESTURE_FODDOWN:
         ts_data->fod_fp_down = true;
-        sysfs_notify(&ts_data->dev->kobj, NULL, "fod_pressed");
+        sysfs_notify(touchpanel_kobj, NULL, "fod_pressed");
         break;
     case GESTURE_FODUP:
         ts_data->fod_fp_down = false;
-        sysfs_notify(&ts_data->dev->kobj, NULL, "fod_pressed");
+        sysfs_notify(touchpanel_kobj, NULL, "fod_pressed");
         break;
     default:
         FTS_ERROR("gesture_id:0x%x not support", gesture_id);
         break;
     }
 }
+#endif
 
 /*****************************************************************************
 * Name: fts_gesture_readdata
@@ -380,7 +382,9 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *touch_buf)
     }
 
     /* report gesture to OS */
+#ifdef CONFIG_TOUCHSCREEN_COMMON
     fts_gesture_report(ts_data, gesture->gesture_id);
+#endif
     return FTS_RETVAL_IGNORE_TOUCHES;
 }
 
@@ -537,7 +541,9 @@ int fts_fod_readdata(struct fts_ts_data *ts_data)
         ret = 0;
     }
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
     fts_gesture_report(ts_data, fod_down ? GESTURE_FODDOWN : GESTURE_FODUP);
+#endif
     return ret;
 }
 
@@ -573,6 +579,43 @@ int fts_fod_resume(struct fts_ts_data *ts_data)
 }
 #endif
 
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+static int fts_gesture_tp_common_init(struct fts_ts_data *ts_data)
+{
+    int ret = 0;
+
+    /* gesture pressed */
+    ret = tp_common_set_double_tap_pressed_ops(&tp_common_double_tap_pressed_ops);
+    if (ret) {
+        FTS_ERROR("set double_tap_pressed ops fail");
+        return ret;
+    }
+    #if FTS_FOD_EN
+    ret = tp_common_set_fod_pressed_ops(&tp_common_fod_pressed_ops);
+    if (ret) {
+        FTS_ERROR("set fod_pressed ops fail");
+        return ret;
+    }
+    #endif
+
+    /* gesture enabled */
+    ret = tp_common_set_double_tap_enabled_ops(&tp_common_double_tap_enabled_ops);
+    if (ret) {
+        FTS_ERROR("set gesture_enabled ops fail");
+        return ret;
+    }
+    #if FTS_FOD_EN
+    ret = tp_common_set_fod_enabled_ops(&tp_common_fod_enabled_ops);
+    if (ret) {
+        FTS_ERROR("set fod_enabled ops fail");
+        return ret;
+    }
+    #endif
+
+    return 0;
+}
+#endif
+
 int fts_gesture_init(struct fts_ts_data *ts_data)
 {
     FTS_FUNC_ENTER();
@@ -595,6 +638,9 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
     mutex_init(&ts_data->gesture_lock);
 
     fts_create_gesture_sysfs(ts_data->dev);
+#ifdef CONFIG_TOUCHSCREEN_COMMON
+    fts_gesture_tp_common_init(ts_data);
+#endif
 
     FTS_FUNC_EXIT();
     return 0;
