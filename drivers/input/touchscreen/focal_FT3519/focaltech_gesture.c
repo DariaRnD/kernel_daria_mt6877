@@ -478,6 +478,8 @@ int fts_gesture_resume(struct fts_ts_data *ts_data)
     else
         FTS_INFO("resume from gesture successfully");
 
+    ts_data->single_tap_pressed = false;
+    ts_data->double_tap_pressed = false;
     FTS_FUNC_EXIT();
     return 0;
 }
