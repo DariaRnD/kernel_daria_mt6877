@@ -1150,42 +1150,6 @@ static ssize_t fts_tamode_store(
     return count;
 }
 
-#if FTS_FOD_EN
-/* fts_fod_mode node */
-static ssize_t fts_fod_show(
-    struct device *dev, struct device_attribute *attr, char *buf)
-{
-    int count = 0;
-    u8 val = 0;
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
-
-    mutex_lock(&ts_data->input_dev->mutex);
-    fts_read_reg(FTS_REG_FOD_MODE_EN, &val);
-    count = snprintf(buf, PAGE_SIZE, "FOD Mode:%s\n", ts_data->fod_mode ? "On" : "Off");
-    count += snprintf(buf + count, PAGE_SIZE, "Reg(0xCF)=%d\n", val);
-    mutex_unlock(&ts_data->input_dev->mutex);
-
-    return count;
-}
-
-static ssize_t fts_fod_store(
-    struct device *dev,
-    struct device_attribute *attr, const char *buf, size_t count)
-{
-    struct fts_ts_data *ts_data = dev_get_drvdata(dev);
-
-    mutex_lock(&ts_data->input_dev->mutex);
-    if (FTS_SYSFS_ECHO_ON(buf)) {
-        fts_fod_enable(ENABLE);
-    } else if (FTS_SYSFS_ECHO_OFF(buf)) {
-        fts_fod_enable(DISABLE);
-    }
-    mutex_unlock(&ts_data->input_dev->mutex);
-
-    return count;
-}
-#endif
-
 /* get the fw version  example:cat fw_version */
 static DEVICE_ATTR(fts_fw_version, S_IRUGO | S_IWUSR, fts_tpfwver_show, fts_tpfwver_store);
 
@@ -1216,9 +1180,6 @@ static DEVICE_ATTR(fts_log_level, S_IRUGO | S_IWUSR, fts_log_level_show, fts_log
 static DEVICE_ATTR(fts_pen, S_IRUGO | S_IWUSR, fts_pen_show, fts_pen_store);
 static DEVICE_ATTR(fts_touch_size, S_IRUGO | S_IWUSR, fts_touchsize_show, fts_touchsize_store);
 static DEVICE_ATTR(fts_ta_mode, S_IRUGO | S_IWUSR, fts_tamode_show, fts_tamode_store);
-#if FTS_FOD_EN
-static DEVICE_ATTR(fts_fod_mode, S_IRUGO | S_IWUSR, fts_fod_show, fts_fod_store);
-#endif
 
 /* add your attr in here*/
 static struct attribute *fts_attributes[] = {
@@ -1236,9 +1197,6 @@ static struct attribute *fts_attributes[] = {
     &dev_attr_fts_pen.attr,
     &dev_attr_fts_touch_size.attr,
     &dev_attr_fts_ta_mode.attr,
-#if FTS_FOD_EN
-    &dev_attr_fts_fod_mode.attr,
-#endif
     NULL
 };
 
