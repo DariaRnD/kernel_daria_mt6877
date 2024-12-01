@@ -204,3 +204,5 @@ obj-$(CONFIG_TOUCHSCREEN_FTS_FT3519) += focal_FT3519/
 #prize add by zhaopengge 20201022 end
 TOUCH_LISTS := $(subst ",,$(CONFIG_TOUCHSCREEN_MTK_TOUCH))
 obj-y += $(foreach TOUCH,$(TOUCH_LISTS),$(TOUCH)/)
+
+obj-$(CONFIG_TOUCHSCREEN_COMMON)	+= tp_common.o
