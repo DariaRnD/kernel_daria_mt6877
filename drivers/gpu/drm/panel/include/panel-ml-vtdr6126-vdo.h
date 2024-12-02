@@ -36,7 +36,7 @@
 
 /*Parameter setting for mode 2 Start*/
 #define MODE_2_FPS                  120
-#define MODE_2_VFP                  88
+#define MODE_2_VFP                  48
 #define MODE_2_HFP                  56
 #define MODE_2_DATA_RATE            960
 /*Parameter setting for mode 2 End*/
