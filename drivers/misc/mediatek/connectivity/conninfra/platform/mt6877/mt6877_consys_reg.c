@@ -74,7 +74,7 @@ int consys_is_consys_reg(unsigned int addr)
 	return 0;
 }
 
-static void consys_bus_hang_dump_a_rc(void)
+static void __maybe_unused consys_bus_hang_dump_a_rc(void)
 {
 	unsigned int i;
 	char tmp[LOG_TMP_BUF_SZ] = {'\0'};
@@ -104,7 +104,7 @@ static void consys_bus_hang_dump_a_rc(void)
 	iounmap(addr);
 }
 
-static void consys_bus_hang_dump_a(void)
+static void __maybe_unused consys_bus_hang_dump_a(void)
 {
 	unsigned int r_rx, r_tx;
 	unsigned int a0, a5, a6, a7, a8, a9, a10, a11, a12;
@@ -178,7 +178,7 @@ static void consys_bus_hang_dump_a(void)
 
 }
 
-static inline unsigned int __consys_bus_hang_clock_detect(void)
+static inline unsigned int __maybe_unused __consys_bus_hang_clock_detect(void)
 {
 	unsigned int count = 0;
 	unsigned int r;
@@ -196,7 +196,7 @@ static inline unsigned int __consys_bus_hang_clock_detect(void)
 	return r;
 }
 
-static void consys_bus_hang_dump_b(void)
+static void __maybe_unused consys_bus_hang_dump_b(void)
 {
 	unsigned int b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10;
 	unsigned int bus_clock, ip_version, irq_b, irq_vndr, irq_axi, irq_conninfra, wifi_irq;
@@ -280,7 +280,7 @@ static void consys_bus_hang_dump_b(void)
 		bus_clock, ip_version, irq_b, irq_vndr, irq_axi, irq_conninfra, wifi_irq);
 }
 
-static void consys_bus_hang_dump_c(bool offclock)
+static void __maybe_unused consys_bus_hang_dump_c(bool offclock)
 {
 	unsigned int c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15;
 	unsigned int r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15;
@@ -374,7 +374,7 @@ static void consys_bus_hang_dump_c(bool offclock)
 		    CONSYS_REG_READ(CONN_HOST_CSR_TOP_CONN_INFRA_ON_DEBUG_CTRL_AO2SYS_OUT_ADDR))  >= 0)
 			strncat(tmp_buf, tmp, strlen(tmp));
 	}
-	pr_info("[CONN_BUS_C]debug_ctrl_setting-2:%s", tmp_buf);
+	pr_debug("[CONN_BUS_C]debug_ctrl_setting-2:%s", tmp_buf);
 
 	/* File: conn_infra_bus_debug
 	 * sheet: 11. axi_layerdebug_ctrl_setting
@@ -389,10 +389,10 @@ static void consys_bus_hang_dump_c(bool offclock)
 		axi1 = CONSYS_REG_READ(addr + 0x08);
 		axi2 = CONSYS_REG_READ(addr + 0x0c);
 		axi3 = CONSYS_REG_READ(addr + 0x10);
-		pr_info("[CONN_BUS_C]axi_layerdebug_ctrl_setting-1:[0x%08x][0x%08x][0x%08x]", axi1, axi2, axi3);
+		pr_debug("[CONN_BUS_C]axi_layerdebug_ctrl_setting-1:[0x%08x][0x%08x][0x%08x]", axi1, axi2, axi3);
 		iounmap(addr);
 	} else {
-		pr_info("[CONN_BUS_C]axi_layerdebug_ctrl_setting-1: allocate fail");
+		pr_debug("[CONN_BUS_C]axi_layerdebug_ctrl_setting-1: allocate fail");
 	}
 
 	CONSYS_REG_WRITE(CONN_HOST_CSR_TOP_CONN_INFRA_AXI_LAYER_DEBUG_CTRL_AO_CTRL, 0x00010001);
@@ -401,7 +401,7 @@ static void consys_bus_hang_dump_c(bool offclock)
 	axi5 = CONSYS_REG_READ(CONN_HOST_CSR_TOP_CONN_INFRA_AXI_LAYER_DEBUG_CTRL_AO_DEBUGSYS_OUT);
 	CONSYS_REG_WRITE(CONN_HOST_CSR_TOP_CONN_INFRA_AXI_LAYER_DEBUG_CTRL_AO_CTRL, 0x00030001);
 	axi6 = CONSYS_REG_READ(CONN_HOST_CSR_TOP_CONN_INFRA_AXI_LAYER_DEBUG_CTRL_AO_DEBUGSYS_OUT);
-	pr_info("[CONN_BUS_C]axi_layerdebug_ctrl_setting-2:[0x%08x][0x%08x][0x%08x]", axi4, axi5, axi6);
+	pr_debug("[CONN_BUS_C]axi_layerdebug_ctrl_setting-2:[0x%08x][0x%08x][0x%08x]", axi4, axi5, axi6);
 
 	if (offclock) {
 		/* 2-2. conn_infra_bus_debug
@@ -426,7 +426,7 @@ static void consys_bus_hang_dump_c(bool offclock)
 		r13 = CONSYS_REG_READ(CONN_BUS_CR_GALS_CONN2GPS_GALS_DBG_ADDR);
 		r14 = CONSYS_REG_READ(CONN_CFG_GALS_GPS2CONN_SLP_STATUS_ADDR);
 		r15 = CONSYS_REG_READ(CONN_BUS_CR_GALS_GPS2CONN_GALS_DBG_ADDR);
-		pr_info("[CONN_BUS_C]slp_prot:[0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x]",
+		pr_debug("[CONN_BUS_C]slp_prot:[0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x]",
 			r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15);
 		/* Power relative */
 		/* C0	Read	0x18001320
@@ -470,13 +470,13 @@ static void consys_bus_hang_dump_c(bool offclock)
 			CONN_HOST_CSR_TOP_CONN_INFRA_CFG_DBG_SEL_CONN_INFRA_CFG_DBG_SEL, 0x7);
 		c14 = CONSYS_REG_READ(CONN_HOST_CSR_TOP_DBG_DUMMY_2_ADDR);
 		c15 = CONSYS_REG_READ(CONN_CFG_EMI_CTL_1_ADDR);
-		pr_info("[CONN_BUS_C]power:[0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x]",
+		pr_debug("[CONN_BUS_C]power:[0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x][0x%08x]",
 			c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15);
 		/* File: conn_infra_bus_debug
 		 * sheet: 12. low_power_layer_information
 		 * Read: 0x1800_E370
 		 */
-		pr_info("[CONN_BUS_C]low_power_layer_information:[0x%08x]",
+		pr_debug("[CONN_BUS_C]low_power_layer_information:[0x%08x]",
 			CONSYS_REG_READ(CONN_BUS_CR_CONN_INFRA_LOW_POWER_LAYER_CTRL_ADDR));
 	}
 }
@@ -487,7 +487,7 @@ static int consys_is_bus_hang(void)
 	unsigned int ret = 0;
 	bool offclk_ok = true;
 
-	consys_bus_hang_dump_a();
+	//consys_bus_hang_dump_a();
 	/* AP2CONN_INFRA ON
 	 * 1. Check ap2conn gals sleep protect status
 	 * 	- 0x1000_1228 [19] / 0x1000_1228 [13](rx/tx)
@@ -502,7 +502,7 @@ static int consys_is_bus_hang(void)
 		ret = CONNINFRA_AP2CONN_TX_SLP_PROT_ERR;
 	if (ret)
 		return ret;
-	consys_bus_hang_dump_b();
+	//consys_bus_hang_dump_b();
 
 	/* AP2CONN_INFRA OFF
 	 * 1.Check "AP2CONN_INFRA ON step is ok"
@@ -536,7 +536,7 @@ static int consys_is_bus_hang(void)
 		ret = CONNINFRA_INFRA_BUS_HANG_IRQ;
 	}
 
-	consys_bus_hang_dump_c(offclk_ok);
+	//consys_bus_hang_dump_c(offclk_ok);
 	return ret;
 }
 
