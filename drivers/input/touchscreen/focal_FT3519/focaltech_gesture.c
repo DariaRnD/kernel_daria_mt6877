@@ -105,16 +105,15 @@ static ssize_t fts_gesture_show(
     return count;
 }
 
+int fts_power_resume(struct fts_ts_data *ts_data);
+int fts_wait_tp_to_valid(void);
+void fts_irq_enable(void);
 static ssize_t fts_gesture_store(
     struct kobject *kobj, struct kobj_attribute *attr,
 			 const char *buf, size_t count)
 {
     struct fts_ts_data *ts_data = fts_data;
 
-    if (ts_data->suspended) {
-        FTS_INFO("In suspend,not operation gesture mode!");
-        return count;
-    }
     mutex_lock(&ts_data->gesture_lock);
     if (FTS_SYSFS_ECHO_ON(buf)) {
         FTS_DEBUG("enable gesture");
@@ -122,6 +121,20 @@ static ssize_t fts_gesture_store(
     } else if (FTS_SYSFS_ECHO_OFF(buf)) {
         FTS_DEBUG("disable gesture");
         ts_data->gesture_support = DISABLE;
+    }
+
+    if (ts_data->suspended && !ts_data->need_work_in_suspend) {
+        FTS_INFO("In suspend, turning the sky pink, i mean resuming to gesture mode!");
+        fts_power_resume(ts_data);
+        fts_wait_tp_to_valid();
+        if (fts_gesture_suspend(ts_data)) {
+            FTS_ERROR("enter gesture mode fail");
+        }
+        ts_data->need_work_in_suspend = true;
+        fts_irq_enable();
+        if (enable_irq_wake(ts_data->irq)) {
+            FTS_ERROR("enable_irq_wake(irq:%d) fail", ts_data->irq);
+        }
     }
     mutex_unlock(&ts_data->gesture_lock);
 
@@ -426,39 +439,6 @@ void fts_gesture_recovery(struct fts_ts_data *ts_data)
     }
 }
 
-int fts_gesture_suspend(struct fts_ts_data *ts_data)
-{
-    int i = 0;
-    u8 state = 0xFF;
-    u8 reg_value = 0;
-
-    FTS_FUNC_ENTER();
-
-    for (i = 0; i < FTS_MAX_RETRIES_WRITEREG; i++) {
-        fts_write_reg(0xD1, 0x3F);
-        fts_write_reg(0xD2, 0xFF);
-        fts_write_reg(0xD5, 0xFF);
-        fts_write_reg(0xD6, 0xFF);
-        fts_write_reg(0xD7, 0xFF);
-        fts_write_reg(0xD8, 0xFF);
-        fts_write_reg(FTS_REG_GESTURE_EN, ENABLE);
-        fts_msleep(1);
-        fts_read_reg(FTS_REG_GESTURE_EN, &state);
-        if (state == ENABLE)
-            break;
-    }
-
-    if (i >= FTS_MAX_RETRIES_WRITEREG)
-        FTS_ERROR("make IC enter into gesture(suspend) fail,state:%x", state);
-    else
-        FTS_INFO("Enter into gesture(suspend) successfully");
-
-    fts_read_reg(FTS_REG_WORKMODE, &reg_value);
-    FTS_INFO("[nadal][fts] reg_value:0x%x\n", reg_value);
-    FTS_FUNC_EXIT();
-    return 0;
-}
-
 int fts_gesture_resume(struct fts_ts_data *ts_data)
 {
     int i = 0;
@@ -585,13 +565,6 @@ int fts_fod_recovery(struct fts_ts_data *ts_data)
 * Output:
 * Return: return 1 if having fod down event, or else return 0
 *****************************************************************************/
-int fts_fod_suspend(struct fts_ts_data *ts_data)
-{
-    ts_data->fod_fp_down = false;
-    fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
-    return 0;
-}
-
 int fts_fod_resume(struct fts_ts_data *ts_data)
 {
     if (!fts_fod_checkdown(ts_data)) fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
@@ -599,6 +572,47 @@ int fts_fod_resume(struct fts_ts_data *ts_data)
     return 0;
 }
 #endif
+
+int fts_gesture_suspend(struct fts_ts_data *ts_data)
+{
+    int i = 0;
+    u8 state = 0xFF;
+    u8 reg_value = 0;
+
+    FTS_FUNC_ENTER();
+
+#if FTS_FOD_EN
+    if (ts_data->fod_mode) {
+        ts_data->fod_fp_down = false;
+        fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
+        ts_data->need_work_in_suspend = true;
+    }
+#endif
+
+    for (i = 0; i < FTS_MAX_RETRIES_WRITEREG; i++) {
+        fts_write_reg(0xD1, 0x3F);
+        fts_write_reg(0xD2, 0xFF);
+        fts_write_reg(0xD5, 0xFF);
+        fts_write_reg(0xD6, 0xFF);
+        fts_write_reg(0xD7, 0xFF);
+        fts_write_reg(0xD8, 0xFF);
+        fts_write_reg(FTS_REG_GESTURE_EN, ENABLE);
+        fts_msleep(1);
+        fts_read_reg(FTS_REG_GESTURE_EN, &state);
+        if (state == ENABLE)
+            break;
+    }
+
+    if (i >= FTS_MAX_RETRIES_WRITEREG)
+        FTS_ERROR("make IC enter into gesture(suspend) fail,state:%x", state);
+    else
+        FTS_INFO("Enter into gesture(suspend) successfully");
+
+    fts_read_reg(FTS_REG_WORKMODE, &reg_value);
+    FTS_INFO("[nadal][fts] reg_value:0x%x\n", reg_value);
+    FTS_FUNC_EXIT();
+    return 0;
+}
 
 #ifdef CONFIG_TOUCHSCREEN_COMMON
 static int fts_gesture_tp_common_init(struct fts_ts_data *ts_data)

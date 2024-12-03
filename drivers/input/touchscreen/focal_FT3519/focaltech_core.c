@@ -1566,7 +1566,7 @@ static int fts_power_suspend(struct fts_ts_data *ts_data)
     return 0;
 }
 
-static int fts_power_resume(struct fts_ts_data *ts_data)
+int fts_power_resume(struct fts_ts_data *ts_data)
 {
     FTS_FUNC_ENTER();
 
@@ -1797,13 +1797,6 @@ static int fts_ts_suspend(struct device *dev)
         fts_release_all_finger();
         ts_data->suspended = true;
         return 0;
-    }
-#endif
-
-#if FTS_FOD_EN
-    if (ts_data->fod_mode) {
-        fts_fod_suspend(ts_data);
-        ts_data->need_work_in_suspend = true;
     }
 #endif
 
