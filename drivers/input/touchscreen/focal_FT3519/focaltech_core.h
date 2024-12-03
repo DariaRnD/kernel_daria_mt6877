@@ -257,12 +257,12 @@ struct fts_ts_data {
     bool prc_support;
     bool prc_mode;
     bool esd_support;
-    bool fod_mode;
     bool proximity_mode;
     bool fhp_mode;
 
     bool fwdbg_support;
     bool gesture_support;   /* gesture enable or disable, default: disable */
+    bool gesture_requested;
     u8 gesture_bmode;       /*gesture buffer mode*/
 
     bool single_tap_pressed;
@@ -365,15 +365,11 @@ int fts_gesture_suspend(struct fts_ts_data *ts_data);
 int fts_gesture_resume(struct fts_ts_data *ts_data);
 
 #if FTS_FOD_EN
-int fts_fod_suspend(struct fts_ts_data *ts_data);
-int fts_fod_resume(struct fts_ts_data *ts_data);
 int fts_fod_readdata(struct fts_ts_data *ts_data);
-int fts_fod_recovery(struct fts_ts_data *ts_data);
-void fts_fod_enable(int enable);
 
 static inline int fts_fod_checkdown(struct fts_ts_data *ts_data)
 {
-    return (ts_data->fod_mode && ts_data->fod_fp_down);
+    return (ts_data->gesture_support && ts_data->fod_fp_down);
 }
 #endif
 

@@ -108,6 +108,25 @@ static ssize_t fts_gesture_show(
 int fts_power_resume(struct fts_ts_data *ts_data);
 int fts_wait_tp_to_valid(void);
 void fts_irq_enable(void);
+static void fts_gesture_from_suspend(struct fts_ts_data *ts_data) {
+    if (ts_data->suspended && !ts_data->need_work_in_suspend) {
+        FTS_INFO("In suspend and not in gesture mode, waking up to gesture mode.");
+        fts_power_resume(ts_data);
+        fts_wait_tp_to_valid();
+
+        ts_data->gesture_support = true;
+        if (fts_gesture_suspend(ts_data)) {
+            FTS_ERROR("enter gesture mode fail");
+        }
+
+        ts_data->need_work_in_suspend = true;
+        fts_irq_enable();
+        if (enable_irq_wake(ts_data->irq)) {
+            FTS_ERROR("enable_irq_wake(irq:%d) fail", ts_data->irq);
+        }
+    }
+}
+
 static ssize_t fts_gesture_store(
     struct kobject *kobj, struct kobj_attribute *attr,
 			 const char *buf, size_t count)
@@ -117,25 +136,13 @@ static ssize_t fts_gesture_store(
     mutex_lock(&ts_data->gesture_lock);
     if (FTS_SYSFS_ECHO_ON(buf)) {
         FTS_DEBUG("enable gesture");
-        ts_data->gesture_support = ENABLE;
+        ts_data->gesture_requested = ENABLE;
+        fts_gesture_from_suspend(ts_data);
     } else if (FTS_SYSFS_ECHO_OFF(buf)) {
         FTS_DEBUG("disable gesture");
-        ts_data->gesture_support = DISABLE;
+        ts_data->gesture_requested = DISABLE;
     }
 
-    if (ts_data->suspended && !ts_data->need_work_in_suspend) {
-        FTS_INFO("In suspend, turning the sky pink, i mean resuming to gesture mode!");
-        fts_power_resume(ts_data);
-        fts_wait_tp_to_valid();
-        if (fts_gesture_suspend(ts_data)) {
-            FTS_ERROR("enter gesture mode fail");
-        }
-        ts_data->need_work_in_suspend = true;
-        fts_irq_enable();
-        if (enable_irq_wake(ts_data->irq)) {
-            FTS_ERROR("enable_irq_wake(irq:%d) fail", ts_data->irq);
-        }
-    }
     mutex_unlock(&ts_data->gesture_lock);
 
     return count;
@@ -145,45 +152,6 @@ static struct tp_common_ops tp_common_double_tap_enabled_ops = {
     .show = fts_gesture_show,
     .store = fts_gesture_store,
 };
-
-#if FTS_FOD_EN
-/* fts_fod_mode node */
-static ssize_t fts_fod_show(
-    struct kobject *kobj, struct kobj_attribute *attr,
-			char *buf)
-{
-    int count = 0;
-    struct fts_ts_data *ts_data = fts_data;
-
-    mutex_lock(&ts_data->gesture_lock);
-    count = snprintf(buf, PAGE_SIZE, "%d\n", ts_data->fod_mode);
-    mutex_unlock(&ts_data->gesture_lock);
-
-    return count;
-}
-
-static ssize_t fts_fod_store(
-    struct kobject *kobj, struct kobj_attribute *attr,
-			 const char *buf, size_t count)
-{
-    struct fts_ts_data *ts_data = fts_data;
-
-    mutex_lock(&ts_data->gesture_lock);
-    if (FTS_SYSFS_ECHO_ON(buf)) {
-        fts_fod_enable(ENABLE);
-    } else if (FTS_SYSFS_ECHO_OFF(buf)) {
-        fts_fod_enable(DISABLE);
-    }
-    mutex_unlock(&ts_data->gesture_lock);
-
-    return count;
-}
-
-static struct tp_common_ops tp_common_fod_enabled_ops = {
-    .show = fts_fod_show,
-    .store = fts_fod_store,
-};
-#endif
 
 static ssize_t fts_gesture_buf_show(
     struct device *dev, struct device_attribute *attr, char *buf)
@@ -417,13 +385,20 @@ int fts_gesture_readdata(struct fts_ts_data *ts_data, u8 *touch_buf)
 #ifdef CONFIG_TOUCHSCREEN_COMMON
     fts_gesture_report(ts_data, gesture->gesture_id);
 #endif
-    return FTS_RETVAL_IGNORE_TOUCHES;
+    return 0;
 }
 
+#if FTS_FOD_EN
+static void fts_fod_set_reg(int value);
+#endif
 void fts_gesture_recovery(struct fts_ts_data *ts_data)
 {
     u8 state = 0xFF;
     if (ts_data->gesture_support && ts_data->suspended) {
+#if FTS_FOD_EN
+        fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
+#endif
+
         fts_write_reg(0xD1, 0x3F);
         fts_write_reg(0xD2, 0xFF);
         fts_write_reg(0xD5, 0xFF);
@@ -445,6 +420,11 @@ int fts_gesture_resume(struct fts_ts_data *ts_data)
     u8 state = 0xFF;
 
     FTS_FUNC_ENTER();
+
+#if FTS_FOD_EN
+    fts_fod_set_reg(DISABLE);
+#endif
+
     for (i = 0; i < FTS_MAX_RETRIES_WRITEREG; i++) {
         fts_write_reg(FTS_REG_GESTURE_EN, DISABLE);
         fts_msleep(1);
@@ -460,6 +440,7 @@ int fts_gesture_resume(struct fts_ts_data *ts_data)
 
     ts_data->single_tap_pressed = false;
     ts_data->double_tap_pressed = false;
+    ts_data->fod_fp_down = false;
     FTS_FUNC_EXIT();
     return 0;
 }
@@ -483,22 +464,6 @@ static void fts_fod_set_reg(int value)
         FTS_ERROR("set fod mode to %x failed,reg_val:%x", fod_val, regval);
     else if (i > 0)
         FTS_INFO("set fod mode to %x successfully", fod_val);
-}
-
-void fts_fod_enable(int enable)
-{
-    struct fts_ts_data *ts_data = fts_data;
-
-    ts_data->fod_fp_down = false;
-    if (enable) {
-        FTS_INFO("Fod enable");
-        ts_data->fod_mode = ENABLE;
-        fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
-    } else {
-        FTS_INFO("Fod disable");
-        ts_data->fod_mode = DISABLE;
-        fts_fod_set_reg(DISABLE);
-    }
 }
 
 /*****************************************************************************
@@ -537,38 +502,10 @@ int fts_fod_readdata(struct fts_ts_data *ts_data)
         fod_down = (fod_val[8] == 0) ? 1 : 0;
         FTS_DEBUG("FOD data:%x %x %x %x[%x,%x][%x]", fod_val[0], fod_val[1],
                   fod_val[2], fod_val[3], fod_x, fod_y, fod_val[8]);
-        ret = (ts_data->suspended) ? FTS_RETVAL_IGNORE_TOUCHES : 0;
-    } else {
-        ret = 0;
     }
-
 #ifdef CONFIG_TOUCHSCREEN_COMMON
     fts_gesture_report(ts_data, fod_down ? GESTURE_FODDOWN : GESTURE_FODUP);
 #endif
-    return ret;
-}
-
-int fts_fod_recovery(struct fts_ts_data *ts_data)
-{
-    if (ts_data->fod_mode) {
-        fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
-    }
-    return 0;
-}
-
-/*****************************************************************************
-* Name: fts_fod_checkdown
-* Brief: check fod down event is triggered, it's used to reset TP or not when
-*        resuming.
-*
-* Input: ts_data
-* Output:
-* Return: return 1 if having fod down event, or else return 0
-*****************************************************************************/
-int fts_fod_resume(struct fts_ts_data *ts_data)
-{
-    if (!fts_fod_checkdown(ts_data)) fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
-    ts_data->fod_fp_down = false;
     return 0;
 }
 #endif
@@ -582,11 +519,7 @@ int fts_gesture_suspend(struct fts_ts_data *ts_data)
     FTS_FUNC_ENTER();
 
 #if FTS_FOD_EN
-    if (ts_data->fod_mode) {
-        ts_data->fod_fp_down = false;
-        fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
-        ts_data->need_work_in_suspend = true;
-    }
+    fts_fod_set_reg(FTS_VAL_FOD_ENABLE);
 #endif
 
     for (i = 0; i < FTS_MAX_RETRIES_WRITEREG; i++) {
@@ -650,7 +583,7 @@ static int fts_gesture_tp_common_init(struct fts_ts_data *ts_data)
         return ret;
     }
     #if FTS_FOD_EN
-    ret = tp_common_set_fod_enabled_ops(&tp_common_fod_enabled_ops);
+    ret = tp_common_set_fod_enabled_ops(&tp_common_double_tap_enabled_ops);
     if (ret) {
         FTS_ERROR("set fod_enabled ops fail");
         return ret;
@@ -668,7 +601,6 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
     memset(&fts_gesture_data, 0, sizeof(struct fts_gesture_st));
     ts_data->gesture_bmode = GESTURE_BM_REG;
     ts_data->gesture_support = DISABLE;
-    ts_data->fod_mode = DISABLE;
 
     if (ts_data->bus_type == BUS_TYPE_SPI) {
         if ((ts_data->ic_info.ids.type <= 0x25)

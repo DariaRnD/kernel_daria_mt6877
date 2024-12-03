@@ -141,9 +141,6 @@ void fts_tp_state_recovery(struct fts_ts_data *ts_data)
         return;
     }
 #endif
-#if FTS_FOD_EN
-    fts_fod_recovery(ts_data);
-#endif
     fts_gesture_recovery(ts_data);
 }
 
@@ -1045,21 +1042,15 @@ static int fts_read_parse_touchdata(struct fts_ts_data *ts_data, u8 *touch_buf)
             return TOUCH_IGNORE;
     }
 #endif
-
-#if FTS_FOD_EN
-    if (ts_data->fod_mode) {
-        if (fts_fod_readdata(ts_data) == FTS_RETVAL_IGNORE_TOUCHES)
-            return TOUCH_IGNORE;
-    }
-#endif
-
     if (ts_data->suspended && ts_data->gesture_support) {
-        if (fts_gesture_readdata(ts_data, touch_buf) == FTS_RETVAL_IGNORE_TOUCHES)
-            return TOUCH_IGNORE;
+#if FTS_FOD_EN
+        fts_fod_readdata(ts_data);
+#endif
+        fts_gesture_readdata(ts_data, touch_buf);
     }
 
     if (ts_data->suspended) {
-        FTS_INFO("In suspend state, not report touch points");
+        //FTS_INFO("In suspend state, not report touch points");
         return TOUCH_IGNORE;
     }
 
@@ -1788,6 +1779,7 @@ static int fts_ts_suspend(struct device *dev)
         return 0;
     }
 
+    ts_data->gesture_support = ts_data->gesture_requested;
     ts_data->need_work_in_suspend = false;
     fts_esdcheck_suspend(ts_data);
 #if FTS_PSENSOR_EN
@@ -1866,11 +1858,6 @@ static int fts_ts_resume(struct device *dev)
     if (ts_data->gesture_support) {
         fts_gesture_resume(ts_data);
     }
-#if FTS_FOD_EN
-    if (ts_data->fod_mode) {
-        fts_fod_resume(ts_data);
-    }
-#endif
     fts_ex_mode_recovery(ts_data);
     fts_esdcheck_resume(ts_data);
 
@@ -1882,6 +1869,7 @@ static int fts_ts_resume(struct device *dev)
         fts_irq_enable();
     }
 
+    ts_data->gesture_support = ts_data->gesture_requested;
     FTS_FUNC_EXIT();
     return 0;
 }
