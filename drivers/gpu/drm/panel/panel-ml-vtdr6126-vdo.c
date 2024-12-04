@@ -157,8 +157,8 @@ static void lcm_pannel_reconfig_blk(struct lcm *ctx)
 	if (mtk_drm_esd_check_status()) {
 		/*PRIZE:Added by lvyuanchuan,X9-534,20230103*/
 		if (!ctx->hbm_en) {
-			if (ctx->bl_level)
-				reg_level = Gamma_to_level[ctx->bl_level];
+			if (ctx->restore_level)
+				reg_level = ctx->restore_level;
 
 			bl_tb0[1] = (reg_level>>8)&0xf;
 			bl_tb0[2] = (reg_level)&0xff;
@@ -499,7 +499,9 @@ static int lcm_setbacklight_cmdq(void *dsi, dcs_write_gce cb,
 		return -1;
 
 	reg_level = Gamma_to_level[level];
-	g_ctx->restore_level = reg_level;
+
+	if (reg_level)
+		g_ctx->restore_level = reg_level;
 
 	if (g_ctx->hbm_en) {
 		cb(dsi, handle, hbm_tb, ARRAY_SIZE(hbm_tb));
