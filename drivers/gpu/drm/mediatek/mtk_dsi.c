@@ -2097,6 +2097,9 @@ static void mtk_output_en_doze_switch(struct mtk_dsi *dsi)
 	bool doze_enabled = mtk_dsi_doze_state(dsi);
 	struct mtk_panel_funcs *panel_funcs;
 	struct drm_crtc *crtc = &dsi->ddp_comp.mtk_crtc->base;
+	int index = drm_crtc_index(crtc);
+	int data = doze_enabled ? MTK_DISP_BLANK_DOZE_ENABLE :
+		MTK_DISP_BLANK_DOZE_DISABLE;
 
 	if (!dsi->output_en)
 		return;
@@ -2113,6 +2116,11 @@ static void mtk_output_en_doze_switch(struct mtk_dsi *dsi)
 	}
 
 	mtk_drm_idlemgr_kick(__func__, crtc, 0);
+
+	if (index == 0)
+		mtk_disp_notifier_call_chain(MTK_DISP_EARLY_EVENT_BLANK,
+					&data);
+
 	/* Change LCM Doze mode */
 	if (doze_enabled && panel_funcs->doze_enable_start)
 		panel_funcs->doze_enable_start(dsi->panel, dsi,
@@ -2189,6 +2197,10 @@ static void mtk_output_en_doze_switch(struct mtk_dsi *dsi)
 	if (panel_funcs->doze_post_disp_on)
 		panel_funcs->doze_post_disp_on(dsi->panel,
 			dsi, mipi_dsi_dcs_write_gce2, NULL);
+
+	if (index == 0)
+		mtk_disp_notifier_call_chain(MTK_DISP_EVENT_BLANK,
+					&data);
 
 	te_cnt = 1;
 	dsi->doze_enabled = doze_enabled;
