@@ -1878,24 +1878,36 @@ static void fts_resume_work(struct work_struct *work)
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *v)
 {
     struct fts_ts_data *ts_data = container_of(self, struct fts_ts_data, fb_notif);
+    int blank;
     FTS_FUNC_ENTER();
-    if (ts_data && v) {
-        const unsigned long event_enum[2] = {MTK_DISP_EARLY_EVENT_BLANK, MTK_DISP_EVENT_BLANK};
-        const int blank_enum[2] = {MTK_DISP_BLANK_POWERDOWN, MTK_DISP_BLANK_UNBLANK};
-        int blank_value = *((int *)v);
-        FTS_INFO("notifier,event:%lu,blank:%d", event, blank_value);
-        if ((blank_enum[1] == blank_value) && (event_enum[1] == event)) {
-            queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
-        } else if ((blank_enum[0] == blank_value) && (event_enum[0] == event)) {
-            cancel_work_sync(&fts_data->resume_work);
-            fts_ts_suspend(ts_data->dev);
-        } else {
-            FTS_DEBUG("notifier,event:%lu,blank:%d, not care", event, blank_value);
-        }
-    } else {
+    if (!ts_data || !v) {
         FTS_ERROR("ts_data/v is null");
         return -EINVAL;
     }
+
+    blank = *((int *)v);
+    switch (event) {
+        case MTK_DISP_EARLY_EVENT_BLANK:
+            if (blank == MTK_DISP_BLANK_UNBLANK ||
+                blank == MTK_DISP_BLANK_DOZE_DISABLE) {
+                FTS_ERROR("Early unblank/doze disable, resume work");
+                queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
+            }
+            break;
+        case MTK_DISP_EVENT_BLANK:
+            if (blank == MTK_DISP_BLANK_POWERDOWN ||
+                blank == MTK_DISP_BLANK_DOZE_ENABLE) {
+                FTS_ERROR("Powerdown/doze, suspend work");
+                cancel_work_sync(&fts_data->resume_work);
+                fts_ts_suspend(ts_data->dev);
+            }
+            break;
+        default:
+            FTS_ERROR("not care event:%lu, blank:%d", event, blank);
+            break;
+    }
+
+    FTS_ERROR("event:%lu, blank:%d", event, blank);
     FTS_FUNC_EXIT();
     return 0;
 }
