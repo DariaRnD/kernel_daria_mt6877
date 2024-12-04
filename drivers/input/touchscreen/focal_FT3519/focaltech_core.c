@@ -35,13 +35,8 @@
 #include <linux/of_device.h>
 #include <linux/of_gpio.h>
 #include <linux/of_irq.h>
-//#if IS_ENABLED(CONFIG_DRM_MEDIATEK)
-//#include "mtk_disp_notify.h"
-//#include "mtk_panel_ext.h"
-//#elif IS_ENABLED(CONFIG_FB)
-#include <linux/notifier.h>
-#include <linux/fb.h>
-//#endif
+
+#include "mtk_disp_notify.h"
 
 #include "focaltech_core.h"
 
@@ -1885,15 +1880,9 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
     struct fts_ts_data *ts_data = container_of(self, struct fts_ts_data, fb_notif);
     FTS_FUNC_ENTER();
     if (ts_data && v) {
-//#if IS_ENABLED(CONFIG_DRM_MEDIATEK)
-//        const unsigned long event_enum[2] = {MTK_DISP_EARLY_EVENT_BLANK, MTK_DISP_EVENT_BLANK};
-//        const int blank_enum[2] = {MTK_DISP_BLANK_POWERDOWN, MTK_DISP_BLANK_UNBLANK};
-//        int blank_value = *((int *)v);
-//#elif IS_ENABLED(CONFIG_FB)
-        const unsigned long event_enum[2] = {FB_EARLY_EVENT_BLANK, FB_EVENT_BLANK};
-        const int blank_enum[2] = {FB_BLANK_POWERDOWN, FB_BLANK_UNBLANK};
-        int blank_value = *((int *)(((struct fb_event *)v)->data));
-//#endif
+        const unsigned long event_enum[2] = {MTK_DISP_EARLY_EVENT_BLANK, MTK_DISP_EVENT_BLANK};
+        const int blank_enum[2] = {MTK_DISP_BLANK_POWERDOWN, MTK_DISP_BLANK_UNBLANK};
+        int blank_value = *((int *)v);
         FTS_INFO("notifier,event:%lu,blank:%d", event, blank_value);
         if ((blank_enum[1] == blank_value) && (event_enum[1] == event)) {
             queue_work(fts_data->ts_workqueue, &fts_data->resume_work);
@@ -1911,49 +1900,16 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
     return 0;
 }
 
-//#if IS_ENABLED(CONFIG_DRM_MEDIATEK)
-/*The function will be called while LCD is recovering*/
-/*static int fts_tp_reinit(void)
-{
-    struct fts_ts_data *ts_data = fts_data;
-
-    FTS_INFO("tp power on reinit after lcd recovery");
-    if (ts_data->suspended) {
-        FTS_INFO("in suspend state, return");
-        return 0;
-    }
-    //Nothing to do, reserved for special case.
-    //fts_release_all_finger();
-    //fts_tp_state_recovery(ts_data);
-    return 0;
-}*/
-//#endif
-
 static int fts_notifier_callback_init(struct fts_ts_data *ts_data)
 {
     int ret = 0;
     FTS_FUNC_ENTER();
-/*#if IS_ENABLED(CONFIG_DRM_MEDIATEK)
     FTS_INFO("init notifier with mtk_disp_notifier_register");
     ts_data->fb_notif.notifier_call = fb_notifier_callback;
     ret = mtk_disp_notifier_register("fts_ts_notifier", &ts_data->fb_notif);
     if (ret < 0) {
         FTS_ERROR("[DRM]mtk_disp_notifier_register fail: %d", ret);
     }
-
-    FTS_INFO("init TP power on reinit!");
-    if (mtk_panel_tch_handle_init()) {
-        void **ret = mtk_panel_tch_handle_init();
-        *ret = (void *)fts_tp_reinit;
-    }*/
-//#elif IS_ENABLED(CONFIG_FB)
-    FTS_INFO("init notifier with fb_register_client");
-    ts_data->fb_notif.notifier_call = fb_notifier_callback;
-    ret = fb_register_client(&ts_data->fb_notif);
-    if (ret) {
-        FTS_ERROR("[FB]Unable to register fb_notifier: %d", ret);
-    }
-//#endif
     FTS_FUNC_EXIT();
     return ret;
 }
@@ -1961,13 +1917,8 @@ static int fts_notifier_callback_init(struct fts_ts_data *ts_data)
 static int fts_notifier_callback_exit(struct fts_ts_data *ts_data)
 {
     FTS_FUNC_ENTER();
-//#if IS_ENABLED(CONFIG_DRM_MEDIATEK)
-//    if (mtk_disp_notifier_unregister(&ts_data->fb_notif))
-//        FTS_ERROR("[DRM]Error occurred while unregistering disp_notifier.");
-//#elif IS_ENABLED(CONFIG_FB)
-    if (fb_unregister_client(&ts_data->fb_notif))
-        FTS_ERROR("[FB]Error occurred while unregistering fb_notifier.");
-//#endif
+    if (mtk_disp_notifier_unregister(&ts_data->fb_notif))
+        FTS_ERROR("[DRM]Error occurred while unregistering disp_notifier.");
     FTS_FUNC_EXIT();
     return 0;
 }

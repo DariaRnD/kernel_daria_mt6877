@@ -8,6 +8,9 @@ focaltech_tp-y := focaltech_core.o \
 		focaltech_point_report_check.o \
 		focaltech_proximity.o
 
+# For DRM notifier
+ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek
+
 focaltech_tp-y += focaltech_spi_v2.o
 focaltech_tp-y += focaltech_debug.o
 focaltech_tp-y += focaltech_hp.o
