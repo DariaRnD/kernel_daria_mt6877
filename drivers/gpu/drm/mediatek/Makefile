@@ -39,6 +39,7 @@ mediatek-drm-y := mtk_drm_drv.o \
 		  mtk_disp_recovery.o \
 		  mtk_disp_pmqos.o \
 		  mtk_disp_dsc.o \
+		  mtk_disp_notify.o \
 		  mtk_drm_arr.o \
 		  mtk_disp_merge.o \
 		  mtk_dmdp_aal.o \
