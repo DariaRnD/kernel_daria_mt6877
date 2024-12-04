@@ -3131,6 +3131,14 @@ static void mtk_dsi_encoder_disable(struct drm_encoder *encoder)
 	struct drm_crtc *crtc = encoder->crtc;
 	int index = drm_crtc_index(crtc);
 	int data = MTK_DISP_BLANK_POWERDOWN;
+	/*
+	 * mtk_atomic_force_doze_switch() will always call
+	 * mtk_dsi_encoder_disable() upon enterance into
+	 * doze mode, however the panel itself won't
+	 * blank, so we shouldn't be invoking blank
+	 * events here.
+	 */
+	bool invoke_cb = (index == 0 && !(mtk_dsi_doze_state(dsi) || dsi->doze_enabled));
 
 	CRTC_MMP_EVENT_START(index, dsi_suspend,
 			(unsigned long)crtc, index);
@@ -3138,7 +3146,7 @@ static void mtk_dsi_encoder_disable(struct drm_encoder *encoder)
 	DDPINFO("%s\n", __func__);
 	mtk_drm_idlemgr_kick(__func__, crtc, 0);
 
-	if (index == 0)
+	if (invoke_cb)
 		mtk_disp_notifier_call_chain(MTK_DISP_EARLY_EVENT_BLANK,
 					&data);
 
@@ -3148,7 +3156,7 @@ static void mtk_dsi_encoder_disable(struct drm_encoder *encoder)
 	bdg_common_deinit(DISP_BDG_DSI0, NULL);
 #endif
 
-	if (index == 0)
+	if (invoke_cb)
 		mtk_disp_notifier_call_chain(MTK_DISP_EVENT_BLANK,
 					&data);
 
@@ -3178,13 +3186,24 @@ static void mtk_dsi_encoder_enable(struct drm_encoder *encoder)
 	struct drm_crtc *crtc = encoder->crtc;
 	int index = drm_crtc_index(crtc);
 	int data = MTK_DISP_BLANK_UNBLANK;
+	/*
+	 * mtk_atomic_force_doze_switch() will always call
+	 * mtk_dsi_encoder_enable() to make sure the encoder
+	 * is enabled before the doze switch.
+	 * 
+	 * This will trigger a false unblank event, but we
+	 * shouldn't be invoking blank/unblank events in doze
+	 * state anyway since the display doesn't actually
+	 * blank or unblank.
+	 */
+	bool invoke_cb = (index == 0 && !(mtk_dsi_doze_state(dsi) || dsi->doze_enabled));
 
 	DDPINFO("%s+\n", __func__);
 
 	CRTC_MMP_EVENT_START(index, dsi_resume,
 			(unsigned long)crtc, index);
 
-	if (index == 0)
+	if (invoke_cb)
 		mtk_disp_notifier_call_chain(MTK_DISP_EARLY_EVENT_BLANK,
 					&data);
 
@@ -3194,7 +3213,7 @@ static void mtk_dsi_encoder_enable(struct drm_encoder *encoder)
 
 	mtk_output_dsi_enable(dsi, false);
 
-	if (index == 0)
+	if (invoke_cb)
 		mtk_disp_notifier_call_chain(MTK_DISP_EVENT_BLANK,
 					&data);
 
